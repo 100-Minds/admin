@@ -1,12 +1,26 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-	/* config options here */
-	output: 'export',
-	reactStrictMode: true,
-	experimental: {
-		scrollRestoration: true,
-	},
+  reactStrictMode: true,
+  experimental: {
+    scrollRestoration: true,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "loremflickr.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
