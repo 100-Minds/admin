@@ -45,7 +45,7 @@ const OtpVerification = ({ loginData, onSuccess }: OtpVerificationProps) => {
 
 	const onSubmit: SubmitHandler<OtpVerificationType> = async (data) => {
 		try {
-			const { data: responseData, error } = await callApi<ApiResponse<SessionData>>('/auth/sign-in', {
+			const { data: responseData, error } = await callApi<ApiResponse<SessionData>>('/auth/admin/sign-in', {
 				email: loginData.email,
 				password: loginData.password,
 				otp: data.otp,
@@ -59,6 +59,9 @@ const OtpVerification = ({ loginData, onSuccess }: OtpVerificationProps) => {
 				toast.success('OTP Verified!', { description: 'Login successful.' });
 
 				const firstUser = responseData.data[0];
+				if (!firstUser) {
+					throw new Error('User data not found');
+				}
 
 				updateUser({ user: firstUser });
 				onSuccess(firstUser);

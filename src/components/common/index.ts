@@ -7,3 +7,4 @@ export { default as Spinner } from "./Spinner";
 export { default as PageMetaData } from "./PageMetaData";
 export { default as FormErrorMessage } from "./FormErrorMessage";
 export { default as Pagination } from "./Pagination";
+export { default as Success } from "./Success";

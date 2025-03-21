@@ -38,7 +38,7 @@ export const useInitSession = create<Session>()((set, get) => ({
 			}
 
 			set({
-				user: data?.data || null, 
+				user: data?.data || null,
 				loading: false,
 			});
 		},
@@ -54,7 +54,15 @@ export const useInitSession = create<Session>()((set, get) => ({
 
 			const currentPageUrl = window.location.pathname;
 
-			if (currentPageUrl !== '/' && currentPageUrl !== '/signup' && !get().isFirstMount) {
+			if (
+				currentPageUrl !== '/' &&
+				currentPageUrl !== '/signup' &&
+				currentPageUrl !== '/forgot-password' &&
+				currentPageUrl !== '/forgot-password/sent' &&
+				currentPageUrl !== '/reset-password' &&
+				currentPageUrl !== '/reset-password/success' &&
+				!get().isFirstMount
+			) {
 				window.location.replace('/?unauthorized=true');
 			}
 		},

@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import AuthLayout from '@/app/auth/layout';
-import { FormErrorMessage } from './common';
+import { FormErrorMessage } from '../common';
 import { useState } from 'react';
 import { NextSeo } from 'next-seo';
 import OtpVerification from './OtpVerification';
@@ -42,7 +42,7 @@ const Login = () => {
 	const onSubmit: SubmitHandler<LoginType> = async (data: LoginType) => {
 		try {
 			setIsLoading(true);
-			const { data: responseData, error } = await callApi<ApiResponse<SessionData>>('/auth/sign-in', {
+			const { data: responseData, error } = await callApi<ApiResponse<SessionData>>('/auth/admin/sign-in', {
 				email: data.email,
 				password: data.password,
 			});
