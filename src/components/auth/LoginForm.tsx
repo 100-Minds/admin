@@ -99,7 +99,7 @@ const Login = () => {
 					content="Sign in to your account to continue using 100 Minds!"
 					heading="Welcome back!"
 					greeting="Sign in to continue"
-					withHeader={false}
+					withHeader={true}
 					hasSuccess={false}
 				>
 					<div className="w-full max-w-md space-y-6">
