@@ -15,15 +15,18 @@ import AuthLayout from '@/app/auth/layout';
 import { FormErrorMessage } from './common';
 import { useState } from 'react';
 import { NextSeo } from 'next-seo';
+import OtpVerification from './OtpVerification';
 
 const Login = () => {
+	const [isLoading, setIsLoading] = useState(false);
+	const [loginData, setLoginData] = useState<LoginType | null>(null);
+	const [showOtpScreen, setShowOtpScreen] = useState(false);
 	const router = useRouter();
+
 	const {
 		//user,
 		actions: { updateUser },
 	} = useSession((state) => state);
-
-	const [isLoading, setIsLoading] = useState(false);
 
 	const {
 		register,
@@ -48,14 +51,11 @@ const Login = () => {
 				throw new Error(error.message);
 			}
 
-			toast.success('Success', {
-				description: responseData?.message,
-			});
-
-			if (responseData?.data) {
-				const { user } = responseData.data;
-				updateUser(user);
-				router.push('/dashboard');
+			if (responseData?.status === 'success') {
+				setLoginData(data);
+				setShowOtpScreen(true);
+				toast.info('OTP required', { description: 'Enter the OTP sent to your email.' });
+				return;
 			}
 		} catch (err) {
 			toast.error('Login Failed', {
@@ -65,6 +65,11 @@ const Login = () => {
 			setIsLoading(false);
 			reset();
 		}
+	};
+
+	const handleOtpSuccess = (user: SessionData[number]) => {
+		updateUser({ user });
+		router.push('/dashboard');
 	};
 
 	return (
@@ -85,75 +90,75 @@ const Login = () => {
 				}}
 				twitter={{ cardType: 'summary_large_image' }}
 			/>
-			<AuthLayout
-				title="Sign in to your account"
-				content="Sign in to your account to continue using 100 Minds!"
-				heading="Welcome back!"
-				greeting="Sign in to continue"
-				withHeader={false} // Set to false since the image doesn't show the header
-				hasSuccess={false}
-			>
-				<div className="w-full max-w-md space-y-6">
-					{/* "Sign in" text */}
-					<div className="flex flex-col items-center space-y-2">
-						<h2 className="text-center text-xl font-semibold text-gray-900">Sign in</h2>
-					</div>
-					<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-						<div>
-							<label htmlFor="email" className="text-sm font-medium text-gray-700">
-								Email Address <span className="text-red-500">*</span>
-							</label>
-							<Input
-								{...register('email')}
-								autoFocus
-								type="email"
-								id="email"
-								aria-label="Email address"
-								placeholder="Email Address"
-								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${
-									errors.email && 'border-red-500 ring-2 ring-red-500'
-								}`}
-							/>
-							{errors.email && <FormErrorMessage error={errors.email} errorMsg={errors.email.message} />}
+
+			{showOtpScreen && loginData ? (
+				<OtpVerification loginData={loginData} onSuccess={handleOtpSuccess} />
+			) : (
+				<AuthLayout
+					title="Sign in to your account"
+					content="Sign in to your account to continue using 100 Minds!"
+					heading="Welcome back!"
+					greeting="Sign in to continue"
+					withHeader={false}
+					hasSuccess={false}
+				>
+					<div className="w-full max-w-md space-y-6">
+						{/* "Sign in" text */}
+						<div className="flex flex-col items-center space-y-2">
+							<h2 className="text-center text-xl font-semibold text-gray-900">Sign in</h2>
 						</div>
-						<div>
-							<label htmlFor="password" className="text-sm font-medium text-gray-700">
-								Password <span className="text-red-500">*</span>
-							</label>
-							<Input
-								{...register('password')}
-								type="password"
-								id="password"
-								aria-label="Password"
-								placeholder="Password"
-								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${
-									errors.password && 'border-red-500 ring-2 ring-red-500'
-								}`}
-							/>
-							{errors.password && <FormErrorMessage error={errors.password} errorMsg={errors.password.message} />}
-						</div>
-						<Button
-							type="submit"
-							disabled={isSubmitting || isLoading}
-							variant="default"
-							className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-2 rounded"
-						>
-							{isSubmitting || isLoading ? 'Signing in...' : 'Login'}
-						</Button>
-						<div className="flex justify-between items-center">
-							<Link href="/forgot-password" className="text-sm font-semibold text-[#509999] hover:underline">
-								Forgot Password?
-							</Link>
-							<p className="text-sm text-gray-600">
-								Don&apos;t have an account?{' '}
-								<Link href="/signup" className="font-medium text-[#509999] hover:underline">
-									Sign up
+						<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+							<div>
+								<label htmlFor="email" className="text-sm font-medium text-gray-700">
+									Email Address <span className="text-red-500">*</span>
+								</label>
+								<Input
+									{...register('email')}
+									autoFocus
+									type="email"
+									id="email"
+									aria-label="Email address"
+									placeholder="Email Address"
+									className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+										errors.email && 'border-red-500 ring-2 ring-red-500'
+									}`}
+								/>
+								{errors.email && <FormErrorMessage error={errors.email} errorMsg={errors.email.message} />}
+							</div>
+							<div>
+								<label htmlFor="password" className="text-sm font-medium text-gray-700">
+									Password <span className="text-red-500">*</span>
+								</label>
+								<Input
+									{...register('password')}
+									type="password"
+									id="password"
+									aria-label="Password"
+									placeholder="Password"
+									className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+										errors.password && 'border-red-500 ring-2 ring-red-500'
+									}`}
+								/>
+								{errors.password && <FormErrorMessage error={errors.password} errorMsg={errors.password.message} />}
+							</div>
+							<Button
+								type="submit"
+								disabled={isSubmitting || isLoading}
+								variant="default"
+								className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-2 rounded"
+							>
+								{isSubmitting || isLoading ? 'Signing in...' : 'Login'}
+							</Button>
+							<div className="flex justify-between items-center">
+								<div></div>
+								<Link href="/forgot-password" className="text-xs font-semibold text-[#509999] hover:underline">
+									Forgot Password?
 								</Link>
-							</p>
-						</div>
-					</form>
-				</div>
-			</AuthLayout>
+							</div>
+						</form>
+					</div>
+				</AuthLayout>
+			)}
 		</>
 	);
 };

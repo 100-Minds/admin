@@ -8,11 +8,11 @@ import type { SelectorFn } from './store-types';
 type Session = {
 	isFirstMount: boolean;
 	loading: boolean;
-	user: User | null;
+	user: User[] | null;
 
 	actions: {
 		clearSession: () => void;
-		updateUser: (data: User) => void;
+		updateUser: (data: { user: User }) => void;
 		getSession: (isInitialLoad?: boolean) => Promise<void>;
 	};
 };
@@ -38,12 +38,12 @@ export const useInitSession = create<Session>()((set, get) => ({
 			}
 
 			set({
-				...(data?.data && { user: data.data.user }),
+				user: data?.data || null, // Set the array of users directly
 				loading: false,
 			});
 		},
 
-		updateUser: (data) => set({ user: data }),
+		updateUser: (data) => set({ user: [data.user] }),
 
 		clearSession: () => {
 			set((state) => ({

@@ -32,3 +32,7 @@ export type UpdatePasswordsProps = {
 	newPassword: string;
 	confirmPassword: string;
 };
+
+export type OtpVerificationProps = {
+	otp: string;
+};

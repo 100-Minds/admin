@@ -5,6 +5,7 @@ import {
 	type SignUpProps,
 	type UpdatePasswordsProps,
 	type UpdateProfileProps,
+	type OtpVerificationProps,
 } from '@/interfaces';
 import { zxcvbn, zxcvbnAsync, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
@@ -26,7 +27,7 @@ zxcvbnOptions.setOptions(options);
 
 export const checkPasswordStrength = (password: string) => zxcvbnAsync(password).then((response) => response.score);
 
-type FormType = 'login' | 'signup' | 'resetPassword' | 'forgotPassword' | 'updateProfile' | 'updatePasswords';
+type FormType = 'login' | 'signup' | 'resetPassword' | 'forgotPassword' | 'updateProfile' | 'updatePasswords' | 'otpVerification';
 
 const signUpSchema: z.ZodType<SignUpProps> = z
 	.object({
@@ -115,6 +116,10 @@ const loginSchema: z.ZodType<LoginProps> = z.object({
 	password: z.string().transform((value) => {
 		return value.trim();
 	}),
+});
+
+const OtpVerificationSchema: z.ZodType<OtpVerificationProps> = z.object({
+	otp: z.string().min(6, { message: 'OTP must be 6 characters' }),
 });
 
 const forgotPasswordSchema: z.ZodType<ForgotPasswordProps> = z.object({
@@ -320,7 +325,9 @@ export const zodValidator = <T extends FormType>(
 					? ForgotPasswordProps
 					: T extends 'updateProfile'
 						? UpdateProfileProps
-						: UpdatePasswordsProps
+						: T extends 'otpVerification'
+							? OtpVerificationProps
+							: UpdatePasswordsProps
 > => {
 	const schemaMap = {
 		login: loginSchema,
@@ -329,6 +336,7 @@ export const zodValidator = <T extends FormType>(
 		forgotPassword: forgotPasswordSchema,
 		updateProfile: updateProfileSchema,
 		updatePasswords: updatePassWordsSchema,
+		otpVerification: OtpVerificationSchema,
 	};
 
 	return schemaMap[type] as ZodType<
@@ -342,7 +350,9 @@ export const zodValidator = <T extends FormType>(
 						? ForgotPasswordProps
 						: T extends 'updateProfile'
 							? UpdateProfileProps
-							: UpdatePasswordsProps
+							: T extends 'otpVerification'
+								? OtpVerificationProps
+								: UpdatePasswordsProps
 	>; // TypeScript needs this assertion to match the conditional type
 };
 
@@ -352,3 +362,4 @@ export type ForgotPasswordType = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
 export type UpdateProfileType = z.infer<typeof updateProfileSchema>;
 export type UpdatePasswordsType = z.infer<typeof updatePassWordsSchema>;
+export type OtpVerificationType = z.infer<typeof OtpVerificationSchema>;

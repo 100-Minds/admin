@@ -33,44 +33,43 @@
 //   );
 // }
 
-"use client";
+'use client';
 
 //import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Auth from "@/components/Protect";
-import { useInitSession } from "@/store/useSession";
-import { useEffect } from "react";
+import { Inter } from 'next/font/google';
+import './globals.css';
+import Auth from '@/components/Protect';
+import { useInitSession } from '@/store/useSession';
+import { useEffect } from 'react';
+import { Toaster } from 'sonner';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 // export const metadata: Metadata = {
 //   title: "Your App",
 //   description: "Your app description",
 // };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { getSession } = useInitSession((state) => state.actions);
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+	const { getSession } = useInitSession((state) => state.actions);
 
-  useEffect(() => {
-    void getSession();
-  }, []);
+	useEffect(() => {
+		void getSession();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
-  // useEffect(() => {
-  //   console.log("Calling getSession");
-  //   getSession(true);
-  // }, []);
+	// useEffect(() => {
+	//   console.log("Calling getSession");
+	//   getSession(true);
+	// }, []);
 
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        {/* Exclude auth protection for the main page */}
-        <Auth exclude={["/"]}>{children}</Auth>
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body className={inter.className}>
+				{/* Exclude auth protection for the main page */}
+				<Auth exclude={['/']}>{children}</Auth>
+				<Toaster richColors position="top-right" />
+			</body>
+		</html>
+	);
 }
