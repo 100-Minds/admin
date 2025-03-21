@@ -55,13 +55,10 @@ const OtpVerification = ({ loginData, onSuccess }: OtpVerificationProps) => {
 				throw new Error(error.message);
 			}
 
-			console.log(responseData);
-
 			if (responseData?.data) {
 				toast.success('OTP Verified!', { description: 'Login successful.' });
 
 				const firstUser = responseData.data[0];
-				console.log(firstUser);
 
 				updateUser({ user: firstUser });
 				onSuccess(firstUser);

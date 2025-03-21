@@ -38,7 +38,7 @@ export const useInitSession = create<Session>()((set, get) => ({
 			}
 
 			set({
-				user: data?.data || null, // Set the array of users directly
+				user: data?.data || null, 
 				loading: false,
 			});
 		},

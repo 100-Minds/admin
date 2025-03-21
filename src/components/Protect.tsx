@@ -23,12 +23,8 @@ const Auth = ({ children, exclude = [] }: AuthProps) => {
   const noAuthRoutes = [
     '/',
     "/signup",
-    "/signup/verification",
-    "/verify-email",
-    "/verify-email/success",
     "/reset-password",
     "/forgot-password",
-    "/2fa/authenticate",
   ];
 
   const isAuthPage = noAuthRoutes.includes(pathname);
