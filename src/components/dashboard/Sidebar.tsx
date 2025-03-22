@@ -16,7 +16,7 @@ export default function Sidebar() {
 	const pathname = usePathname();
 
 	return (
-		<aside className="w-[250px] bg-white text-[#000000] flex flex-col p-4 space-y-6 h-screen py-9 overflow-y-auto">
+		<aside className="w-[220px] bg-white text-[#000000] flex flex-col p-4 space-y-6 h-screen py-9 overflow-y-auto">
 			<h1 className="font-bold text-[#000000] text-4xl mb-10 mt-7">Logo</h1>
 
 			<nav className="flex flex-col gap-4 flex-grow">
@@ -51,7 +51,7 @@ export default function Sidebar() {
 						<span
 							className={cn(
 								'flex items-center justify-between p-3 rounded-lg transition cursor-pointer text-xs text-red-800',
-								pathname === item.path ? 'bg-[#F3F3F3]' : 'hover:bg-[#F3F3F3]'
+								pathname === item.path ? 'bg-[#F8F8F8]' : 'hover:bg-[#F8F8F8]'
 							)}
 						>
 							<div className="flex items-center gap-3">

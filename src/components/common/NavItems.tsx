@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input';
-import { SearchIcon, BellIcon } from '../common';
-import Profile from './Profile';
+import { SearchIcon, BellIcon } from '.';
+import Profile from '../dashboard/Profile';
 
 export default function NavItems({ heading }: { heading: string }) {
 	return (
@@ -17,8 +17,8 @@ export default function NavItems({ heading }: { heading: string }) {
 			</div>
 
 			<div className="flex items-center gap-2">
-				<div className="relative cursor-pointer bg-white rounded-xl p-2">
-					<BellIcon className="w-8 h-8 text-gray-600 hover:text-gray-800" />
+				<div className="relative cursor-pointer bg-white rounded-xl p-3.5">
+					<BellIcon className="w-6 h-6 text-gray-600 hover:text-gray-800" />
 					<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
 						3
 					</span>
