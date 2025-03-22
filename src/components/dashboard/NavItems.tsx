@@ -2,10 +2,10 @@ import { Input } from '@/components/ui/input';
 import { SearchIcon, BellIcon } from '../common';
 import Profile from './Profile';
 
-export default function NavItems() {
+export default function NavItems({ heading }: { heading: string }) {
 	return (
 		<div className="w-full flex items-center gap-4 justify-between">
-			<h1 className="text-4xl font-semibold">Dashboard</h1>
+			<h1 className="text-4xl font-semibold">{heading}</h1>
 
 			<div className="relative flex-1 max-w-xl mx-10">
 				<SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />

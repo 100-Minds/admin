@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from '@/store';
+import Image from 'next/image';
 
 export default function Profile() {
 	const { user } = useSession((state) => state);
@@ -17,7 +18,9 @@ export default function Profile() {
 			<div className="flex items-center gap-2 p-2 rounded-xl bg-[#ffffff] mt-auto">
 				<Avatar>
 					<AvatarImage src={`${user[0].photo}`} />
-					<AvatarFallback>{`${user[0].firstName[0]} ${user[0].lastName[0]}`}</AvatarFallback>
+					<AvatarFallback>
+						<Image src="/icons/Frame 7.svg" alt="Fallback Icon" width={100} height={100} />
+					</AvatarFallback>
 				</Avatar>
 
 				<div className="flex flex-col">

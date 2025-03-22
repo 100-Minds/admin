@@ -1,6 +1,7 @@
 import { DataTable } from '@/components/dashboard/Users';
 import { ColumnDef } from '@tanstack/react-table';
 import DashboardLayout from '../dashboard/layout';
+import NavItems from '@/components/dashboard/NavItems';
 
 type Payment = {
 	id: string;
@@ -67,8 +68,14 @@ const columns: ColumnDef<Payment>[] = [
 export default function Users() {
 	return (
 		<DashboardLayout>
-			<div className="flex items-center justify-center">
-				<DataTable columns={columns} data={payments} />
+			<div className="mb-12">
+				<header className="flex  my-3 p-4">
+					<NavItems heading="Users" />
+				</header>
+
+				<div className="flex items-center justify-center">
+					<DataTable columns={columns} data={payments} />
+				</div>
 			</div>
 		</DashboardLayout>
 	);

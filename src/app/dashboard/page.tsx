@@ -9,7 +9,7 @@ const Dashboard = () => {
 				<header className="flex  my-3 p-4">
 					{/* <h1 className="text-4xl font-semibold">Dashboard</h1> */}
 
-					<NavItems />
+					<NavItems heading="Dashboard" />
 				</header>
 			</div>
 		</>
