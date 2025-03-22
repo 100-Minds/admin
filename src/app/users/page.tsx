@@ -9,7 +9,7 @@ type Payment = {
 	email: string;
 };
 
-export const payments: Payment[] = [
+const payments: Payment[] = [
 	{
 		id: '728ed52f',
 		amount: 100,
@@ -49,7 +49,7 @@ export const payments: Payment[] = [
 	// ...
 ];
 
-export const columns: ColumnDef<Payment>[] = [
+const columns: ColumnDef<Payment>[] = [
 	{
 		accessorKey: 'status',
 		header: 'Status',
@@ -67,11 +67,9 @@ export const columns: ColumnDef<Payment>[] = [
 export default function Users() {
 	return (
 		<DashboardLayout>
-			
-				<div className="flex items-center justify-center">
-					<DataTable columns={columns} data={payments} />
-				</div>
-	
+			<div className="flex items-center justify-center">
+				<DataTable columns={columns} data={payments} />
+			</div>
 		</DashboardLayout>
 	);
 }
