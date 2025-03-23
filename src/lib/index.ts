@@ -8,6 +8,7 @@ export {
 	type UpdateProfileType,
 	type UpdatePasswordsType,
 	type AddPowerSkillType,
+	type AddRolePlayType,
 } from './validators/validateWithZod';
 
 export { callApi } from './helpers/callApi';

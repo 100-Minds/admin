@@ -1,4 +1,4 @@
-export type { ApiResponse, User, PowerSkill } from './ApiResponses';
+export type { ApiResponse, User, PowerSkill, RolePlay } from './ApiResponses';
 export type {
 	ForgotPasswordProps,
 	LoginProps,
@@ -8,7 +8,7 @@ export type {
 	UpdatePasswordsProps,
 	OtpVerificationProps,
 	AddPowerSkillProps,
-	AddScenarioProps,
+	AddRolePlayProps,
 } from './FormInputs';
 export type { AuthLayoutProps, BaseLayoutProps } from './Layouts';
 export type { WithPageLayout } from './WithPageLayout';

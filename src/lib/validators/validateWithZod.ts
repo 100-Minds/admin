@@ -7,6 +7,7 @@ import {
 	type UpdateProfileProps,
 	type OtpVerificationProps,
 	type AddPowerSkillProps,
+	type AddRolePlayProps,
 } from '@/interfaces';
 import { zxcvbn, zxcvbnAsync, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
@@ -36,7 +37,8 @@ type FormType =
 	| 'updateProfile'
 	| 'updatePasswords'
 	| 'otpVerification'
-	| 'powerSkill';
+	| 'powerSkill'
+	| 'rolePlay';
 
 const signUpSchema: z.ZodType<SignUpProps> = z
 	.object({
@@ -306,6 +308,15 @@ const addPowerSkillSchema: z.ZodType<AddPowerSkillProps> = z.object({
 	skill: z.string().min(3, { message: 'Skill is required' }).trim(),
 });
 
+const addRolePlaySchema: z.ZodType<AddRolePlayProps> = z.object({
+	scenario: z
+		.string()
+		.min(5, { message: 'Scenario must be at least 5 characters long' })
+		.max(500, { message: 'Scenario must be less than 500 characters' })
+		.trim(),
+	scenarioImage: z.instanceof(File, { message: 'Scenario image must be a valid file' }),
+});
+
 // export const zodValidator = (formType: FormType) => {
 // 	switch (formType) {
 // 		case 'signup':
@@ -342,7 +353,9 @@ export const zodValidator = <T extends FormType>(
 							? OtpVerificationProps
 							: T extends 'powerSkill'
 								? AddPowerSkillProps
-								: UpdatePasswordsProps
+								: T extends 'rolePlay'
+									? AddRolePlayProps
+									: UpdatePasswordsProps
 > => {
 	const schemaMap = {
 		login: loginSchema,
@@ -353,6 +366,7 @@ export const zodValidator = <T extends FormType>(
 		updatePasswords: updatePassWordsSchema,
 		otpVerification: OtpVerificationSchema,
 		powerSkill: addPowerSkillSchema,
+		rolePlay: addRolePlaySchema,
 	};
 
 	return schemaMap[type] as ZodType<
@@ -370,7 +384,9 @@ export const zodValidator = <T extends FormType>(
 								? OtpVerificationProps
 								: T extends 'powerSkill'
 									? AddPowerSkillProps
-									: UpdatePasswordsProps
+									: T extends 'rolePlay'
+										? AddRolePlayProps
+										: UpdatePasswordsProps
 	>; // TypeScript needs this assertion to match the conditional type
 };
 
@@ -382,3 +398,4 @@ export type UpdateProfileType = z.infer<typeof updateProfileSchema>;
 export type UpdatePasswordsType = z.infer<typeof updatePassWordsSchema>;
 export type OtpVerificationType = z.infer<typeof OtpVerificationSchema>;
 export type AddPowerSkillType = z.infer<typeof addPowerSkillSchema>;
+export type AddRolePlayType = z.infer<typeof addRolePlaySchema>;

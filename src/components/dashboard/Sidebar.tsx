@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DashboardIcon, UsersIcon, LogoutIcon, ThunderIcon } from '../common';
+import { DashboardIcon, UsersIcon, LogoutIcon, ThunderIcon, RolePlayIcon } from '../common';
 
 const menuItems = [
 	{ name: 'Dashboard', icon: DashboardIcon, path: '/dashboard' },
 	{ name: 'Users', icon: UsersIcon, path: '/users' },
 	{ name: 'Power Skills', icon: ThunderIcon, path: '/power-skills' },
+	{ name: 'Role Play', icon: RolePlayIcon, path: '/role-play' },
 	//{ name: 'Settings', icon: UsersIcon, path: '/settings' },
 ];
 

@@ -41,6 +41,7 @@ export type AddPowerSkillProps = {
 	skill: string;
 };
 
-export type AddScenarioProps = {
+export type AddRolePlayProps = {
 	scenario: string;
+	scenarioImage: File | null;
 };

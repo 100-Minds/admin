@@ -19,8 +19,18 @@ export type PowerSkill = {
 	created_at: string;
 };
 
+export type RolePlay = {
+	id: string;
+	scenario: string;
+	scenarioImage: string;
+	userId: string;
+	isDeleted: boolean;
+	created_at: string;
+}
+
 export type SessionData = User[];
 export type PowerSkillData = PowerSkill[];
+export type RolePlayData = RolePlay[];
 
 export type ApiResponse<T = Record<string, unknown>> = {
 	status: string;

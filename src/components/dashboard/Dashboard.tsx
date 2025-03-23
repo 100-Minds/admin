@@ -84,7 +84,6 @@ export default function DashboardStats() {
 			setError(null);
 
 			try {
-				// Replace with your actual API endpoint for fetching stats
 				const { data: apiData, error } = await callApi<ApiResponse<Statistics[]>>('/statistics/stats');
 
 				if (error) {
@@ -171,26 +170,24 @@ export default function DashboardStats() {
 	];
 
 	return (
-		<div className="">
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-				{statItems.map((stat, index) => {
-					const isSelected = selectedCardIndex === index;
-					const iconWithColor = React.cloneElement(stat.icon, {
-						style: { color: isSelected ? 'white' : '#509999' },
-					});
+		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+			{statItems.map((stat, index) => {
+				const isSelected = selectedCardIndex === index;
+				const iconWithColor = React.cloneElement(stat.icon, {
+					style: { color: isSelected ? 'white' : '#509999' },
+				});
 
-					return (
-						<StatCard
-							key={index}
-							title={stat.title}
-							value={stat.value}
-							icon={iconWithColor}
-							selected={isSelected}
-							onClick={() => setSelectedCardIndex(index)}
-						/>
-					);
-				})}
-			</div>
+				return (
+					<StatCard
+						key={index}
+						title={stat.title}
+						value={stat.value}
+						icon={iconWithColor}
+						selected={isSelected}
+						onClick={() => setSelectedCardIndex(index)}
+					/>
+				);
+			})}
 		</div>
 	);
 }
