@@ -239,8 +239,45 @@ export function DataTable() {
 
 	if (loading) {
 		return (
-			<div className="w-full bg-white rounded-md px-6 py-4 text-center">
-				<p>Loading users...</p>
+			<div className="w-full bg-white rounded-md px-6 py-6">
+				<div className="flex items-center py-4">
+					<div className="h-10 w-48 bg-gray-200 rounded animate-pulse max-w-sm"></div>
+
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<div className="h-10 w-32 bg-gray-200 rounded ml-auto animate-pulse"></div>
+						</DropdownMenuTrigger>
+					</DropdownMenu>
+				</div>
+
+				<div className="rounded-md border">
+					<Table>
+						<TableHeader>
+							<TableRow className="bg-[#F8F8F8]">
+								{table
+									.getHeaderGroups()
+									.map((headerGroup) =>
+										headerGroup.headers.map((header) => (
+											<TableHead key={header.id}>
+												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										))
+									)}
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{Array.from({ length: 10 }).map((_, index) => (
+								<TableRow key={index} className="animate-pulse">
+									{columns.map((_, cellIndex) => (
+										<TableCell key={cellIndex}>
+											<div className="h-4 bg-gray-200 rounded w-full"></div>
+										</TableCell>
+									))}
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</div>
 			</div>
 		);
 	}

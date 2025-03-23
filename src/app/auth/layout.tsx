@@ -21,9 +21,9 @@ export default function AuthLayout({
 	hasSuccess = false,
 }: AuthLayoutProps) {
 	return (
-		<main className="flex w-full items-center justify-center bg-white" role="main">
+		<main className="flex w-full items-center justify-center bg-white my-auto" role="main">
 			<PageMetaData title={title} content={content} />
-			<section className="w-full max-w-md bg-white p-8" aria-label="Authentication form">
+			<section className="w-full max-w-md bg-white p-8 P-0" aria-label="Authentication form">
 				<div className="flex flex-col items-center space-y-4">
 					{withHeader && (
 						<>
@@ -51,7 +51,7 @@ export default function AuthLayout({
 						</>
 					)}
 					{/* <LogoBanner /> Reintroduced LogoBanner */}
-					
+
 					{hasSuccess && <p className="text-green-600 text-sm text-center">Success!</p>}
 					{children}
 				</div>
