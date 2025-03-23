@@ -192,7 +192,6 @@ export function DataTable() {
 
 			try {
 				const { data: apiData, error } = await callApi<ApiResponse<User[]>>('/user/all');
-				console.log(apiData);
 
 				if (error) {
 					setError(error.message || 'Something went wrong while fetching users.');

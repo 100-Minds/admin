@@ -16,8 +16,8 @@ export default function Sidebar() {
 	const pathname = usePathname();
 
 	return (
-		<aside className="w-[220px] bg-white text-[#000000] flex flex-col p-4 space-y-6 h-screen py-9 overflow-y-auto">
-			<h1 className="font-bold text-[#000000] text-4xl mb-10 mt-7">Logo</h1>
+		<aside className="w-[220px] bg-white text-[#000000] flex flex-col p-4 space-y-6 h-screen py-5 overflow-y-auto">
+			<h1 className="font-bold text-[#000000] text-4xl mb-14 mt-7">Logo</h1>
 
 			<nav className="flex flex-col gap-4 flex-grow">
 				{menuItems.map((item) => (
