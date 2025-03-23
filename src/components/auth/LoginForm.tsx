@@ -145,7 +145,7 @@ const Login = () => {
 								type="submit"
 								disabled={isSubmitting || isLoading}
 								variant="default"
-								className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-2 rounded"
+								className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-5 rounded"
 							>
 								{isSubmitting || isLoading ? 'Signing in...' : 'Login'}
 							</Button>

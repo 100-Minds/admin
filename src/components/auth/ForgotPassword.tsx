@@ -75,7 +75,7 @@ const ForgotPasswordPage = () => {
 				<div className="flex flex-col gap-4 text-center">
 					<Button
 						disabled={isSubmitting}
-						className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-2 rounded"
+						className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-5 rounded"
 						variant="default"
 					>
 						Submit

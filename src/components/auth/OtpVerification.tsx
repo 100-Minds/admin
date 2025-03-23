@@ -141,7 +141,7 @@ const OtpVerification = ({ loginData, onSuccess }: OtpVerificationProps) => {
 						<Button
 							type="submit"
 							disabled={form.formState.isSubmitting}
-							className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer py-2 text-white font-semibold rounded-lg mt-4"
+							className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer py-5 text-white font-semibold rounded-lg mt-4"
 						>
 							{form.formState.isSubmitting ? 'Verifying...' : 'Submit OTP'}
 						</Button>

@@ -122,7 +122,7 @@ const ResetPassword = () => {
 				</div>
 				<Button
 					disabled={isSubmitting}
-					className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-2 rounded mt-6"
+					className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-5 rounded mt-6"
 					variant="default"
 				>
 					Submit

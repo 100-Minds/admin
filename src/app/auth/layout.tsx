@@ -21,10 +21,10 @@ export default function AuthLayout({
 	hasSuccess = false,
 }: AuthLayoutProps) {
 	return (
-		<main className="flex h-screen w-full items-center justify-center bg-white" role="main">
+		<main className="flex w-full items-center justify-center bg-white" role="main">
 			<PageMetaData title={title} content={content} />
 			<section className="w-full max-w-md bg-white p-8" aria-label="Authentication form">
-				<div className="flex flex-col items-center space-y-4 min-h-[400px]">
+				<div className="flex flex-col items-center space-y-4">
 					{withHeader && (
 						<>
 							<div className="bg-[#509999] text-white rounded-full w-12 h-12 flex items-center justify-center">
