@@ -6,6 +6,7 @@ import {
 	type UpdatePasswordsProps,
 	type UpdateProfileProps,
 	type OtpVerificationProps,
+	type AddPowerSkillProps,
 } from '@/interfaces';
 import { zxcvbn, zxcvbnAsync, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
@@ -27,7 +28,15 @@ zxcvbnOptions.setOptions(options);
 
 export const checkPasswordStrength = (password: string) => zxcvbnAsync(password).then((response) => response.score);
 
-type FormType = 'login' | 'signup' | 'resetPassword' | 'forgotPassword' | 'updateProfile' | 'updatePasswords' | 'otpVerification';
+type FormType =
+	| 'login'
+	| 'signup'
+	| 'resetPassword'
+	| 'forgotPassword'
+	| 'updateProfile'
+	| 'updatePasswords'
+	| 'otpVerification'
+	| 'powerSkill';
 
 const signUpSchema: z.ZodType<SignUpProps> = z
 	.object({
@@ -293,6 +302,10 @@ const updatePassWordsSchema: z.ZodType<UpdatePasswordsProps> = z
 		path: ['confirmNewPassword'],
 	});
 
+const addPowerSkillSchema: z.ZodType<AddPowerSkillProps> = z.object({
+	skill: z.string().min(3, { message: 'Skill is required' }).trim(),
+});
+
 // export const zodValidator = (formType: FormType) => {
 // 	switch (formType) {
 // 		case 'signup':
@@ -327,7 +340,9 @@ export const zodValidator = <T extends FormType>(
 						? UpdateProfileProps
 						: T extends 'otpVerification'
 							? OtpVerificationProps
-							: UpdatePasswordsProps
+							: T extends 'powerSkill'
+								? AddPowerSkillProps
+								: UpdatePasswordsProps
 > => {
 	const schemaMap = {
 		login: loginSchema,
@@ -337,6 +352,7 @@ export const zodValidator = <T extends FormType>(
 		updateProfile: updateProfileSchema,
 		updatePasswords: updatePassWordsSchema,
 		otpVerification: OtpVerificationSchema,
+		powerSkill: addPowerSkillSchema,
 	};
 
 	return schemaMap[type] as ZodType<
@@ -352,7 +368,9 @@ export const zodValidator = <T extends FormType>(
 							? UpdateProfileProps
 							: T extends 'otpVerification'
 								? OtpVerificationProps
-								: UpdatePasswordsProps
+								: T extends 'powerSkill'
+									? AddPowerSkillProps
+									: UpdatePasswordsProps
 	>; // TypeScript needs this assertion to match the conditional type
 };
 
@@ -363,3 +381,4 @@ export type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
 export type UpdateProfileType = z.infer<typeof updateProfileSchema>;
 export type UpdatePasswordsType = z.infer<typeof updatePassWordsSchema>;
 export type OtpVerificationType = z.infer<typeof OtpVerificationSchema>;
+export type AddPowerSkillType = z.infer<typeof addPowerSkillSchema>;

@@ -39,7 +39,10 @@ const Auth = ({ children, exclude = [] }: AuthProps) => {
 			id: 'access-denied',
 			duration: 1000,
 		});
-		router.replace(route);
+
+		setTimeout(() => {
+			router.replace(route);
+		}, 500);
 	};
 
 	// If user is signed in but on an auth page (e.g., /signin, /signup, etc.)

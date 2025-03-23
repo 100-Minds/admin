@@ -7,6 +7,7 @@ export {
 	type SignUpType,
 	type UpdateProfileType,
 	type UpdatePasswordsType,
+	type AddPowerSkillType,
 } from './validators/validateWithZod';
 
 export { callApi } from './helpers/callApi';

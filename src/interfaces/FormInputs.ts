@@ -36,3 +36,11 @@ export type UpdatePasswordsProps = {
 export type OtpVerificationProps = {
 	otp: string;
 };
+
+export type AddPowerSkillProps = {
+	skill: string;
+};
+
+export type AddScenarioProps = {
+	scenario: string;
+};

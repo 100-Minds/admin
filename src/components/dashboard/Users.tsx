@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
+import debounce from 'lodash/debounce';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -42,13 +43,6 @@ import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { callApi } from '@/lib';
-
-export type Payment = {
-	id: string;
-	amount: number;
-	status: 'pending' | 'processing' | 'success' | 'failed';
-	email: string;
-};
 
 const columns: ColumnDef<User>[] = [
 	{
@@ -237,6 +231,16 @@ export function DataTable() {
 		},
 	});
 
+	const debouncedFilter = React.useCallback(
+		(value: string) => {
+			const filterFunc = debounce((filterValue: string) => {
+				table.getColumn('email')?.setFilterValue(filterValue);
+			}, 2000);
+			filterFunc(value);
+		},
+		[table]
+	);
+
 	if (loading) {
 		return (
 			<div className="w-full bg-white rounded-md px-6 py-6">
@@ -295,8 +299,10 @@ export function DataTable() {
 			<div className="flex items-center py-4">
 				<Input
 					placeholder="Filter emails..."
-					value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
-					onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
+					// value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+					// onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
+					defaultValue={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+					onChange={(event) => debouncedFilter(event.target.value)}
 					className="max-w-sm"
 				/>
 				<DropdownMenu>

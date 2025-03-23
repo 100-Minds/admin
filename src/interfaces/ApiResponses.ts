@@ -3,15 +3,24 @@ export type User = {
 	firstName: string;
 	lastName: string;
 	email: string;
+	username: string;
+	photo: string;
 	role: string;
 	isSuspended: boolean;
-	username: string;
-	created_at: string;
-	photo: string;
 	isDeleted: boolean;
+	created_at: string;
+};
+
+export type PowerSkill = {
+	id: string;
+	powerskill: string;
+	userId: string;
+	isDeleted: boolean;
+	created_at: string;
 };
 
 export type SessionData = User[];
+export type PowerSkillData = PowerSkill[];
 
 export type ApiResponse<T = Record<string, unknown>> = {
 	status: string;
