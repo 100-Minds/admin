@@ -114,17 +114,17 @@ export default function DashboardStats() {
 
 	if (loading) {
 		return (
-			<div className="!py-6">
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 !gap-4">
+			<div className="py-6">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 					{[...Array(6)].map((_, index) => (
-						<Card key={index} className="!p-4 !min-h-[160px]">
-							<CardContent className="!p-0">
-								<div className="flex items-center !space-x-2">
-									<div className="!h-5 !w-5 bg-gray-200 animate-pulse rounded" />
-									<div className="!h-4 !w-24 bg-gray-200 animate-pulse" />
+						<Card key={index} className="p-4 min-h-[160px]">
+							<CardContent className="p-0">
+								<div className="flex items-center space-x-2">
+									<div className="h-5 w-5 bg-gray-200 animate-pulse rounded" />
+									<div className="h-4 w-24 bg-gray-200 animate-pulse" />
 								</div>
-								<div className="!h-6 !w-16 bg-gray-200 animate-pulse !mt-2" />
-								<div className="!h-3 !w-32 bg-gray-200 animate-pulse !mt-1" />
+								<div className="h-6 w-16 bg-gray-200 animate-pulse mt-2" />
+								<div className="h-3 w-32 bg-gray-200 animate-pulse mt-1" />
 							</CardContent>
 						</Card>
 					))}
@@ -134,45 +134,45 @@ export default function DashboardStats() {
 	}
 
 	if (error) {
-		return <div className="!py-6 text-center text-red-500">Error: {error}</div>;
+		return <div className="py-6 text-center text-red-500">Error: {error}</div>;
 	}
 
 	const statItems = [
 		{
 			title: 'Total Users',
 			value: stats.totalUsers,
-			icon: <Users className="!h-5 !w-5 text-[#509999]" />,
+			icon: <Users className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Role Play',
 			value: stats.totalRolePlay,
-			icon: <Drama className="!h-5 !w-5 text-[#509999]" />,
+			icon: <Drama className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Teams',
 			value: stats.totalTeams,
-			icon: <Users className="!h-5 !w-5 text-[#509999]" />,
+			icon: <Users className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Power Skill',
 			value: stats.totalPowerSkill,
-			icon: <Zap className="!h-5 !w-5 text-[#509999]" />,
+			icon: <Zap className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Learning Journey',
 			value: stats.totalLearningJourney,
-			icon: <BookOpen className="!h-5 !w-5 text-[#509999]" />,
+			icon: <BookOpen className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Courses',
 			value: stats.totalCourses,
-			icon: <Book className="!h-5 !w-5 text-[#509999]" />,
+			icon: <Book className="h-5 w-5 text-[#509999]" />,
 		},
 	];
 
 	return (
 		<div className="">
-			<div className="!grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 !gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				{statItems.map((stat, index) => {
 					const isSelected = selectedCardIndex === index;
 					const iconWithColor = React.cloneElement(stat.icon, {
