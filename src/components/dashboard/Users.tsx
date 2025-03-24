@@ -39,6 +39,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ApiResponse, User } from '@/interfaces';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -49,38 +50,35 @@ export function DataTable() {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
-	const [users, setUsers] = React.useState<User[]>([]);
-	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
+	const queryClient = useQueryClient();
 
-	const fetchUsers = React.useCallback(async () => {
-		setLoading(true);
-		setError(null);
-
-		try {
+	const {
+		data: users,
+		isLoading: loading,
+		error: queryError,
+	} = useQuery<User[], Error>({
+		queryKey: ['users'],
+		queryFn: async () => {
 			const { data: apiData, error } = await callApi<ApiResponse<User[]>>('/user/all');
-
 			if (error) {
-				setError(error.message || 'Something went wrong while fetching users.');
-				toast.error('Failed to Fetch Users', {
-					description: error.message || 'Something went wrong while fetching users.',
-				});
-			} else if (apiData?.data) {
-				setUsers(apiData.data);
-				toast.success('Users Fetched', {
-					description: 'Successfully fetched users.',
-				});
+				throw new Error(error.message || 'Something went wrong while fetching users.');
 			}
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred while fetching users.';
+			if (!apiData?.data) {
+				throw new Error('No user data returned');
+			}
+			toast.success('Users Fetched', { description: 'Successfully fetched users.' });
+			return apiData.data;
+		},
+	});
+
+	useEffect(() => {
+		if (queryError) {
+			const errorMessage = queryError.message || 'An unexpected error occurred while fetching users.';
 			setError(errorMessage);
-			toast.error('Failed to Fetch Users', {
-				description: errorMessage,
-			});
-		} finally {
-			setLoading(false);
+			toast.error('Failed to Fetch Users', { description: errorMessage });
 		}
-	}, []);
+	}, [queryError]);
 
 	const onSuspendUser = async (userId: string, suspend: boolean) => {
 		try {
@@ -130,10 +128,6 @@ export function DataTable() {
 			return false;
 		}
 	};
-
-	useEffect(() => {
-		fetchUsers();
-	}, [fetchUsers]);
 
 	const columns: ColumnDef<User>[] = [
 		{
@@ -258,7 +252,7 @@ export function DataTable() {
 								className="hover:cursor-pointer"
 								onClick={async () => {
 									const success = await onPromoteUser(row.original.id, row.original.role !== 'admin');
-									if (success) await fetchUsers();
+									if (success) await queryClient.invalidateQueries({ queryKey: ['users'] });
 								}}
 							>
 								{row.original.role === 'user' ? 'Promote User' : 'Demote User'}
@@ -267,7 +261,7 @@ export function DataTable() {
 								className="hover:cursor-pointer text-red-500"
 								onClick={async () => {
 									const success = await onSuspendUser(row.original.id, !row.original.isSuspended);
-									if (success) await fetchUsers();
+									if (success) await queryClient.invalidateQueries({ queryKey: ['users'] });
 								}}
 							>
 								{row.original.isSuspended ? 'Unsuspend User' : 'Suspend User'}
@@ -280,7 +274,7 @@ export function DataTable() {
 	];
 
 	const table = useReactTable({
-		data: users,
+		data: users ?? [],
 		columns,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,

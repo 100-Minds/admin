@@ -40,8 +40,10 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Auth from '@/components/Protect';
 import { useInitSession } from '@/store/useSession';
-import { useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+//import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -57,18 +59,40 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		void getSession();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
-
 	// useEffect(() => {
 	//   console.log("Calling getSession");
 	//   getSession(true);
 	// }, []);
 
+	function QueryProvider({ children }: { children: ReactNode }) {
+		const [queryClient] = useState(
+			() =>
+				new QueryClient({
+					defaultOptions: {
+						queries: {
+							gcTime: 5 * 60 * 1000,
+							staleTime: 1 * 60 * 1000,
+						},
+					},
+				})
+		);
+
+		return (
+			<QueryClientProvider client={queryClient}>
+				{children}
+				{/* <ReactQueryDevtools initialIsOpen={false} /> */}
+			</QueryClientProvider>
+		);
+	}
+
 	return (
 		<html lang="en">
 			<body className={inter.className}>
-				{/* Exclude auth protection for the main page */}
-				<Auth exclude={['/']}>{children}</Auth>
-				<Toaster richColors position="top-right" />
+				<QueryProvider>
+					{/* Exclude auth protection for the main page */}
+					<Auth exclude={['/']}>{children}</Auth>
+					<Toaster richColors position="top-right" />
+				</QueryProvider>
 			</body>
 		</html>
 	);

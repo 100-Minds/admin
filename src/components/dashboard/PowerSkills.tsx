@@ -16,6 +16,7 @@ import debounce from 'lodash/debounce';
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -53,9 +54,8 @@ export default function PowerSkilll() {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
-	const [skills, setSkills] = React.useState<PowerSkill[]>([]);
-	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
+	const queryClient = useQueryClient();
 
 	const {
 		register,
@@ -68,38 +68,34 @@ export default function PowerSkilll() {
 		reValidateMode: 'onChange',
 	});
 
-	const fetchSkills = React.useCallback(async () => {
-		setLoading(true);
-		setError(null);
-
-		try {
+	const {
+		data: skills,
+		isLoading: loading,
+		error: queryError,
+	} = useQuery<PowerSkill[], Error>({
+		queryKey: ['skills'],
+		queryFn: async () => {
 			const { data: apiData, error } = await callApi<ApiResponse<PowerSkill[]>>('/skill/all');
-
 			if (error) {
-				const errorMessage = error.message || 'Something went wrong while fetching skills.';
-				setError(errorMessage);
-				toast.error('Failed to Fetch Skills', {
-					description: errorMessage,
-				});
-				return;
+				throw new Error(error.message || 'Something went wrong while fetching skills.');
 			}
+			if (!apiData?.data) {
+				throw new Error('No skill data returned');
+			}
+			toast.success('Skills Fetched', { description: 'Successfully fetched power skills.' });
+			return apiData.data;
+		},
+	});
 
-			if (apiData?.data) {
-				setSkills(apiData.data);
-				toast.success('Skills Fetched', {
-					description: 'Successfully retrieved skills.',
-				});
-			}
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred while fetching skills.';
+	useEffect(() => {
+		if (queryError) {
+			const errorMessage = queryError.message || 'An unexpected error occurred while fetching skills.';
 			setError(errorMessage);
 			toast.error('Failed to Fetch Skills', {
 				description: errorMessage,
 			});
-		} finally {
-			setLoading(false);
 		}
-	}, []);
+	}, [queryError]);
 
 	const onSubmit: SubmitHandler<AddPowerSkillType> = async (data: AddPowerSkillType) => {
 		try {
@@ -114,7 +110,7 @@ export default function PowerSkilll() {
 
 			if (responseData?.status === 'success') {
 				toast.success('Power Skill Created', { description: 'The power skill has been added successfully.' });
-				await fetchSkills();
+				queryClient.invalidateQueries({ queryKey: ['skills'] });
 			}
 		} catch (err) {
 			toast.error('Skill Creation Failed', {
@@ -128,12 +124,9 @@ export default function PowerSkilll() {
 
 	const onDeleteSkill = async (skillId: string) => {
 		try {
-			const { data: responseData, error } = await callApi<ApiResponse<{ status: string; data: null; message: string }>>(
-				`/skill/delete-skill`,
-				{
-					skillId,
-				}
-			);
+			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/skill/delete-skill`, {
+				skillId,
+			});
 
 			if (error) throw new Error(error.message);
 			if (responseData?.status === 'success') {
@@ -148,10 +141,6 @@ export default function PowerSkilll() {
 			return false;
 		}
 	};
-
-	useEffect(() => {
-		fetchSkills();
-	}, [fetchSkills]);
 
 	const columns: ColumnDef<PowerSkill>[] = [
 		{
@@ -244,7 +233,7 @@ export default function PowerSkilll() {
 								className="hover:cursor-pointer text-red-500"
 								onClick={async () => {
 									const success = await onDeleteSkill(row.original.id);
-									if (success) await fetchSkills();
+									if (success) await queryClient.invalidateQueries({ queryKey: ['skills'] });
 								}}
 							>
 								Delete
@@ -258,7 +247,7 @@ export default function PowerSkilll() {
 	];
 
 	const table = useReactTable({
-		data: skills,
+		data: skills ?? [],
 		columns,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,

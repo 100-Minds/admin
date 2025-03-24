@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import debounce from 'lodash/debounce';
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
 	DropdownMenu,
@@ -53,10 +54,9 @@ export default function RolePlays() {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
-	const [scenario, setScenario] = React.useState<RolePlay[]>([]);
-	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
 	const [fileName, setFileName] = useState<string | null>(null);
+	const queryClient = useQueryClient();
 
 	const {
 		register,
@@ -70,40 +70,34 @@ export default function RolePlays() {
 		reValidateMode: 'onChange',
 	});
 
-	const fetchScenarios = React.useCallback(async () => {
-		setLoading(true);
-		setError(null);
-
-		try {
+	const {
+		data: scenario,
+		isLoading: loading,
+		error: queryError,
+	} = useQuery<RolePlay[], Error>({
+		queryKey: ['rolePlay'],
+		queryFn: async () => {
 			const { data: apiData, error } = await callApi<ApiResponse<RolePlay[]>>('/scenario/all');
-
 			if (error) {
-				const errorMessage = error.message || 'Something went wrong while fetching role plays.';
-				setError(errorMessage);
-				toast.error('Failed to Role Plays', {
-					description: errorMessage,
-				});
-				return;
+				throw new Error(error.message || 'Something went wrong while fetching role plays.');
 			}
+			if (!apiData?.data) {
+				throw new Error('No role play data returned');
+			}
+			toast.success('Role plays Fetched', { description: 'Successfully fetched role plays.' });
+			return apiData.data;
+		},
+	});
 
-			if (apiData?.data) {
-				setFileName(null);
-				setScenario(apiData.data);
-				toast.success('Role Plays Fetched', {
-					description: 'Successfully retrieved role plays.',
-				});
-			}
-		} catch (err) {
-			const errorMessage =
-				err instanceof Error ? err.message : 'An unexpected error occurred while fetching role plays.';
+	useEffect(() => {
+		if (queryError) {
+			const errorMessage = queryError.message || 'An unexpected error occurred while fetching role plays.';
 			setError(errorMessage);
-			toast.error('Failed to Fetch Role Plays', {
+			toast.error('Failed to Role plays', {
 				description: errorMessage,
 			});
-		} finally {
-			setLoading(false);
 		}
-	}, []);
+	}, [queryError]);
 
 	const onSubmit: SubmitHandler<AddRolePlayType> = async (data: AddRolePlayType) => {
 		try {
@@ -127,7 +121,8 @@ export default function RolePlays() {
 
 			if (responseData?.status === 'success') {
 				toast.success('Role Play Created', { description: 'The role play scenario has been added successfully.' });
-				await fetchScenarios();
+				setFileName(null);
+				queryClient.invalidateQueries({ queryKey: ['rolePlay'] });
 			}
 		} catch (err) {
 			toast.error('Role Play Creation Failed', {
@@ -141,12 +136,9 @@ export default function RolePlays() {
 
 	const onDeleteRolePlay = async (scenarioId: string) => {
 		try {
-			const { data: responseData, error } = await callApi<ApiResponse<{ status: string; data: null; message: string }>>(
-				`/scenario/delete-scenario`,
-				{
-					scenarioId,
-				}
-			);
+			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/scenario/delete-scenario`, {
+				scenarioId,
+			});
 
 			if (error) throw new Error(error.message);
 			if (responseData?.status === 'success') {
@@ -161,10 +153,6 @@ export default function RolePlays() {
 			return false;
 		}
 	};
-
-	useEffect(() => {
-		fetchScenarios();
-	}, [fetchScenarios]);
 
 	const columns: ColumnDef<RolePlay>[] = [
 		{
@@ -258,7 +246,7 @@ export default function RolePlays() {
 								className="hover:cursor-pointer text-red-500"
 								onClick={async () => {
 									const success = await onDeleteRolePlay(row.original.id);
-									if (success) await fetchScenarios();
+									if (success) await queryClient.invalidateQueries({ queryKey: ['rolePlay'] });
 								}}
 							>
 								Delete
@@ -272,7 +260,7 @@ export default function RolePlays() {
 	];
 
 	const table = useReactTable({
-		data: scenario,
+		data: scenario ?? [],
 		columns,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
