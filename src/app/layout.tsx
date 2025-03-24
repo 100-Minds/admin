@@ -40,7 +40,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Auth from '@/components/Protect';
 import { useInitSession } from '@/store/useSession';
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 //import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -51,6 +51,15 @@ const inter = Inter({ subsets: ['latin'] });
 //   title: "Your App",
 //   description: "Your app description",
 // };
+
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			gcTime: 5 * 60 * 1000, 
+			staleTime: 1 * 60 * 1000,
+		},
+	},
+});
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	const { getSession } = useInitSession((state) => state.actions);
@@ -64,35 +73,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	//   getSession(true);
 	// }, []);
 
-	function QueryProvider({ children }: { children: ReactNode }) {
-		const [queryClient] = useState(
-			() =>
-				new QueryClient({
-					defaultOptions: {
-						queries: {
-							gcTime: 5 * 60 * 1000,
-							staleTime: 1 * 60 * 1000,
-						},
-					},
-				})
-		);
+	// function QueryProvider({ children }: { children: ReactNode }) {
+	// 	const [queryClient] = useState(
+	// 		() =>
+	// 			new QueryClient({
+	// 				defaultOptions: {
+	// 					queries: {
+	// 						gcTime: 5 * 60 * 1000,
+	// 						staleTime: 1 * 60 * 1000,
+	// 					},
+	// 				},
+	// 			})
+	// 	);
 
-		return (
-			<QueryClientProvider client={queryClient}>
-				{children}
-				{/* <ReactQueryDevtools initialIsOpen={false} /> */}
-			</QueryClientProvider>
-		);
-	}
+	// 	return (
+	// 		<QueryClientProvider client={queryClient}>
+	// 			{children}
+	// 			<ReactQueryDevtools initialIsOpen={false} />
+	// 		</QueryClientProvider>
+	// 	);
+	// }
 
 	return (
 		<html lang="en">
 			<body className={inter.className}>
-				<QueryProvider>
+				<QueryClientProvider client={queryClient}>
+					{/* <QueryProvider> */}
 					{/* Exclude auth protection for the main page */}
 					<Auth exclude={['/']}>{children}</Auth>
 					<Toaster richColors position="top-right" />
-				</QueryProvider>
+					{/* </QueryProvider> */}
+				</QueryClientProvider>
 			</body>
 		</html>
 	);
