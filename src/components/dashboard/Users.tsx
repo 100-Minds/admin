@@ -44,138 +44,6 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { callApi } from '@/lib';
 
-const columns: ColumnDef<User>[] = [
-	{
-		id: 'select',
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
-	{
-		id: 'name',
-		header: ({ column }) => {
-			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-					Name
-					<ArrowUpDown />
-				</Button>
-			);
-		},
-		cell: ({ row }) => {
-			const firstName = row.original.firstName;
-			const lastName = row.original.lastName;
-			const photo = row.original.photo;
-			return (
-				<div className="flex items-center space-x-2">
-					<Avatar>
-						<AvatarImage src={photo} />
-						<AvatarFallback>
-							<Image src="/icons/Frame 7.svg" alt="Fallback Icon" width={100} height={100} />
-						</AvatarFallback>
-					</Avatar>
-					<span className="lowercase ml-3">{`${firstName} ${lastName}`}</span>
-				</div>
-			);
-		},
-		accessorFn: (row) => `${row.firstName} ${row.lastName}`,
-	},
-	{
-		accessorKey: 'email',
-		header: ({ column }) => {
-			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-					Email
-					<ArrowUpDown />
-				</Button>
-			);
-		},
-		cell: ({ row }) => <div className="lowercase ml-3">{row.getValue('email')}</div>,
-	},
-	{
-		accessorKey: 'username',
-		header: ({ column }) => {
-			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-					User Name
-					<ArrowUpDown />
-				</Button>
-			);
-		},
-		cell: ({ row }) => <div className="lowercase ml-3">{row.getValue('username')}</div>,
-	},
-	{
-		accessorKey: 'role',
-		header: 'Role',
-		cell: ({ row }) => <div className="lowercase">{row.getValue('role')}</div>,
-	},
-	{
-		accessorKey: 'isSuspended',
-		header: () => <div className="ml-5">Suspended</div>,
-		cell: ({ row }) => {
-			const suspend = row.getValue('isSuspended') as boolean;
-			return <div className="ml-5">{suspend.toString()}</div>;
-		},
-	},
-	{
-		accessorKey: 'created_at',
-		header: () => <div>Created At</div>,
-		cell: ({ row }) => {
-			const date = row.getValue('created_at');
-
-			if (!date) return <div className="text-right">—</div>;
-
-			const formattedDate =
-				typeof date === 'string' || typeof date === 'number' ? format(new Date(date), 'EEE do, MMM') : 'Invalid Date';
-
-			return <div className="">{formattedDate}</div>;
-		},
-	},
-	{
-		id: 'actions',
-		enableHiding: false,
-		cell: ({ row }) => {
-			const user = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild className="hover:cursor-pointer">
-						<Button variant="ghost" className="h-8 w-8 p-0">
-							<span className="sr-only">Open menu</span>
-							<MoreHorizontal />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)} className="hover:cursor-pointer">
-							Copy user ID
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem className="hover:cursor-pointer">
-							{user.role === 'user' ? 'Promote user' : 'Demote user'}
-						</DropdownMenuItem>
-						<DropdownMenuItem className="hover:cursor-pointer text-red-500">
-							{user.isSuspended === true ? 'UnSuspend user' : 'Suspend user'}
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
-	},
-];
-
 export function DataTable() {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -185,38 +53,231 @@ export function DataTable() {
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
 
-	useEffect(() => {
-		const fetchUsers = async () => {
-			setLoading(true);
-			setError(null);
+	const fetchUsers = React.useCallback(async () => {
+		setLoading(true);
+		setError(null);
 
-			try {
-				const { data: apiData, error } = await callApi<ApiResponse<User[]>>('/user/all');
+		try {
+			const { data: apiData, error } = await callApi<ApiResponse<User[]>>('/user/all');
 
-				if (error) {
-					setError(error.message || 'Something went wrong while fetching users.');
-					toast.error('Failed to Fetch Users', {
-						description: error.message || 'Something went wrong while fetching users.',
-					});
-				} else if (apiData?.data) {
-					setUsers(apiData.data);
-					toast.success('Users Fetched', {
-						description: 'Successfully fetched users.',
-					});
-				}
-			} catch (err) {
-				const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred while fetching users.';
-				setError(errorMessage);
+			if (error) {
+				setError(error.message || 'Something went wrong while fetching users.');
 				toast.error('Failed to Fetch Users', {
-					description: errorMessage,
+					description: error.message || 'Something went wrong while fetching users.',
 				});
-			} finally {
-				setLoading(false);
+			} else if (apiData?.data) {
+				setUsers(apiData.data);
+				toast.success('Users Fetched', {
+					description: 'Successfully fetched users.',
+				});
 			}
-		};
-
-		fetchUsers();
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred while fetching users.';
+			setError(errorMessage);
+			toast.error('Failed to Fetch Users', {
+				description: errorMessage,
+			});
+		} finally {
+			setLoading(false);
+		}
 	}, []);
+
+	const onSuspendUser = async (userId: string, suspend: boolean) => {
+		try {
+			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/user/suspend-user`, {
+				userId,
+				suspend,
+			});
+
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				const action = suspend ? 'Suspended' : 'Unsuspended';
+				toast.success(`User ${action}`, {
+					description: responseData.message || `The user has been ${action.toLowerCase()} successfully.`,
+				});
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Suspend Operation Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
+
+	const onPromoteUser = async (userId: string, makeAdmin: boolean) => {
+		try {
+			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/user/make-admin`, {
+				userId,
+				makeAdmin,
+			});
+
+			if (error) throw new Error(error.message);
+
+			if (responseData?.status === 'success') {
+				const action = makeAdmin ? 'Promoted' : 'Demoted';
+				toast.success(`User ${action}`, {
+					description: responseData.message || `The user has been ${action.toLowerCase()} successfully.`,
+				});
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Promotion Operation Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
+
+	useEffect(() => {
+		fetchUsers();
+	}, [fetchUsers]);
+
+	const columns: ColumnDef<User>[] = [
+		{
+			id: 'select',
+			header: ({ table }) => (
+				<Checkbox
+					checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+					aria-label="Select all"
+				/>
+			),
+			cell: ({ row }) => (
+				<Checkbox
+					checked={row.getIsSelected()}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					aria-label="Select row"
+				/>
+			),
+			enableSorting: false,
+			enableHiding: false,
+		},
+		{
+			id: 'name',
+			header: ({ column }) => {
+				return (
+					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+						Name
+						<ArrowUpDown />
+					</Button>
+				);
+			},
+			cell: ({ row }) => {
+				const firstName = row.original.firstName;
+				const lastName = row.original.lastName;
+				const photo = row.original.photo;
+				return (
+					<div className="flex items-center space-x-2">
+						<Avatar>
+							<AvatarImage src={photo} />
+							<AvatarFallback>
+								<Image src="/icons/Frame 7.svg" alt="Fallback Icon" width={100} height={100} />
+							</AvatarFallback>
+						</Avatar>
+						<span className="lowercase ml-3">{`${firstName} ${lastName}`}</span>
+					</div>
+				);
+			},
+			accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+		},
+		{
+			accessorKey: 'email',
+			header: ({ column }) => {
+				return (
+					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+						Email
+						<ArrowUpDown />
+					</Button>
+				);
+			},
+			cell: ({ row }) => <div className="lowercase ml-3">{row.getValue('email')}</div>,
+		},
+		{
+			accessorKey: 'username',
+			header: ({ column }) => {
+				return (
+					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+						User Name
+						<ArrowUpDown />
+					</Button>
+				);
+			},
+			cell: ({ row }) => <div className="lowercase ml-3">{row.getValue('username')}</div>,
+		},
+		{
+			accessorKey: 'role',
+			header: 'Role',
+			cell: ({ row }) => <div className="lowercase">{row.getValue('role')}</div>,
+		},
+		{
+			accessorKey: 'isSuspended',
+			header: () => <div className="ml-5">Suspended</div>,
+			cell: ({ row }) => {
+				const suspend = row.getValue('isSuspended') as boolean;
+				return <div className="ml-5">{suspend.toString()}</div>;
+			},
+		},
+		{
+			accessorKey: 'created_at',
+			header: () => <div>Created At</div>,
+			cell: ({ row }) => {
+				const date = row.getValue('created_at');
+
+				if (!date) return <div className="text-right">—</div>;
+
+				const formattedDate =
+					typeof date === 'string' || typeof date === 'number' ? format(new Date(date), 'EEE do, MMM') : 'Invalid Date';
+
+				return <div className="">{formattedDate}</div>;
+			},
+		},
+		{
+			id: 'actions',
+			enableHiding: false,
+			cell: ({ row }) => {
+				const user = row.original;
+
+				return (
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild className="hover:cursor-pointer">
+							<Button variant="ghost" className="h-8 w-8 p-0">
+								<span className="sr-only">Open menu</span>
+								<MoreHorizontal />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuLabel>Actions</DropdownMenuLabel>
+							<DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)} className="hover:cursor-pointer">
+								Copy user ID
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="hover:cursor-pointer"
+								onClick={async () => {
+									const success = await onPromoteUser(row.original.id, row.original.role !== 'admin');
+									if (success) await fetchUsers();
+								}}
+							>
+								{row.original.role === 'user' ? 'Promote User' : 'Demote User'}
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								className="hover:cursor-pointer text-red-500"
+								onClick={async () => {
+									const success = await onSuspendUser(row.original.id, !row.original.isSuspended);
+									if (success) await fetchUsers();
+								}}
+							>
+								{row.original.isSuspended ? 'Unsuspend User' : 'Suspend User'}
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				);
+			},
+		},
+	];
 
 	const table = useReactTable({
 		data: users,
