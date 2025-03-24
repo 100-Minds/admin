@@ -55,7 +55,7 @@ const inter = Inter({ subsets: ['latin'] });
 const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
-			gcTime: 5 * 60 * 1000, 
+			gcTime: 5 * 60 * 1000,
 			staleTime: 1 * 60 * 1000,
 		},
 	},
@@ -73,36 +73,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	//   getSession(true);
 	// }, []);
 
-	// function QueryProvider({ children }: { children: ReactNode }) {
-	// 	const [queryClient] = useState(
-	// 		() =>
-	// 			new QueryClient({
-	// 				defaultOptions: {
-	// 					queries: {
-	// 						gcTime: 5 * 60 * 1000,
-	// 						staleTime: 1 * 60 * 1000,
-	// 					},
-	// 				},
-	// 			})
-	// 	);
-
-	// 	return (
-	// 		<QueryClientProvider client={queryClient}>
-	// 			{children}
-	// 			<ReactQueryDevtools initialIsOpen={false} />
-	// 		</QueryClientProvider>
-	// 	);
-	// }
-
 	return (
 		<html lang="en">
 			<body className={inter.className}>
 				<QueryClientProvider client={queryClient}>
-					{/* <QueryProvider> */}
 					{/* Exclude auth protection for the main page */}
 					<Auth exclude={['/']}>{children}</Auth>
 					<Toaster richColors position="top-right" />
-					{/* </QueryProvider> */}
+					{/* <ReactQueryDevtools initialIsOpen={false} /> */}
 				</QueryClientProvider>
 			</body>
 		</html>

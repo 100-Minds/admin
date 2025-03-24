@@ -8,6 +8,7 @@ import { Card, CardContent } from '../ui/card';
 import { format } from 'date-fns';
 import React from 'react';
 import { ApiResponse } from '@/interfaces';
+import { useQuery } from '@tanstack/react-query';
 
 interface StatCardProps {
 	title: string;
@@ -66,50 +67,37 @@ function StatCard({ title, value, icon, selected, onClick }: StatCardProps) {
 }
 
 export default function DashboardStats() {
-	const [stats, setStats] = useState({
-		totalUsers: 0,
-		totalRolePlay: 0,
-		totalTeams: 0,
-		totalPowerSkill: 0,
-		totalLearningJourney: 0,
-		totalCourses: 0,
-	});
-	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
 
-	useEffect(() => {
-		const fetchStats = async () => {
-			setLoading(true);
-			setError(null);
-
-			try {
-				const { data: apiData, error } = await callApi<ApiResponse<Statistics[]>>('/statistics/stats');
-
-				if (error) {
-					setError(error.message || 'Something went wrong while fetching stats.');
-					toast.error('Failed to Fetch Stats', {
-						description: error.message || 'Something went wrong while fetching stats.',
-					});
-				} else if (apiData?.data) {
-					setStats(apiData?.data[0]);
-					toast.success('Stats Fetched', {
-						description: 'Successfully fetched statistics.',
-					});
-				}
-			} catch (err) {
-				const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred while fetching stats.';
-				setError(errorMessage);
-				toast.error('Failed to Fetch Stats', {
-					description: errorMessage,
-				});
-			} finally {
-				setLoading(false);
+	const {
+		data: stats,
+		isLoading: loading,
+		error: queryError,
+	} = useQuery<Statistics[], Error>({
+		queryKey: ['stats'],
+		queryFn: async () => {
+			const { data: apiData, error } = await callApi<ApiResponse<Statistics[]>>('/statistics/stats');
+			if (error) {
+				throw new Error(error.message || 'Something went wrong while fetching stats.');
 			}
-		};
+			if (!apiData?.data) {
+				throw new Error('Failed to Fetch Stats');
+			}
+			toast.success('Stats Fetched', { description: 'Successfully fetched statistics.' });
+			return apiData.data;
+		},
+	});
 
-		fetchStats();
-	}, []);
+	useEffect(() => {
+		if (queryError) {
+			const errorMessage = queryError.message || 'An unexpected error occurred while fetching stats.';
+			setError(errorMessage);
+			toast.error('Failed to Fetch Stats', {
+				description: errorMessage,
+			});
+		}
+	}, [queryError]);
 
 	if (loading) {
 		return (
@@ -139,32 +127,32 @@ export default function DashboardStats() {
 	const statItems = [
 		{
 			title: 'Total Users',
-			value: stats.totalUsers,
+			value: stats ? stats[0].totalUsers : 0,
 			icon: <Users className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Role Play',
-			value: stats.totalRolePlay,
+			value: stats ? stats[0].totalRolePlay : 0,
 			icon: <Drama className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Teams',
-			value: stats.totalTeams,
+			value: stats ? stats[0].totalTeams : 0,
 			icon: <Users className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Power Skill',
-			value: stats.totalPowerSkill,
+			value: stats ? stats[0].totalPowerSkill : 0,
 			icon: <Zap className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Learning Journey',
-			value: stats.totalLearningJourney,
+			value: stats ? stats[0].totalLearningJourney : 0,
 			icon: <BookOpen className="h-5 w-5 text-[#509999]" />,
 		},
 		{
 			title: 'Total Courses',
-			value: stats.totalCourses,
+			value: stats ? stats[0].totalCourses : 0,
 			icon: <Book className="h-5 w-5 text-[#509999]" />,
 		},
 	];
