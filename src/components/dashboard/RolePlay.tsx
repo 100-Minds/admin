@@ -47,98 +47,6 @@ import {
 } from '@/components/ui/pagination';
 import React from 'react';
 
-const columns: ColumnDef<RolePlay>[] = [
-	{
-		id: 'select',
-		header: ({ table }) => (
-			<Checkbox
-				checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-				aria-label="Select all"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
-	{
-		id: 'scenario',
-		header: ({ column }) => {
-			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-					Scenario
-					<ArrowUpDown />
-				</Button>
-			);
-		},
-		cell: ({ row }) => {
-			const scenario = row.original.scenario;
-			const scenarioImage = row.original.scenarioImage;
-
-			return (
-				<div className="flex items-center space-x-2">
-					<Avatar>
-						<AvatarImage src={scenarioImage} />
-						<AvatarFallback>RP</AvatarFallback>
-					</Avatar>
-					<span className="lowercase ml-3">{`${scenario}`}</span>
-				</div>
-			);
-		},
-		accessorFn: (row) => `${row.scenario} ${row.scenarioImage}`,
-	},
-	{
-		accessorKey: 'id',
-		header: 'Id',
-		cell: ({ row }) => <div className="lowercase">{row.getValue('id')}</div>,
-	},
-	{
-		accessorKey: 'created_at',
-		header: () => <div>Created At</div>,
-		cell: ({ row }) => {
-			const date = row.getValue('created_at');
-
-			if (!date) return <div className="text-right">—</div>;
-
-			const formattedDate =
-				typeof date === 'string' || typeof date === 'number' ? format(new Date(date), 'EEE do, MMM') : 'Invalid Date';
-
-			return <div className="">{formattedDate}</div>;
-		},
-	},
-	{
-		id: 'actions',
-		enableHiding: false,
-		cell: ({ row }) => {
-			const user = row.original;
-
-			return (
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="h-8 w-8 p-0">
-							<span className="sr-only">Open menu</span>
-							<MoreHorizontal />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)}>Copy payment ID</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem>View customer</DropdownMenuItem>
-						<DropdownMenuItem>View payment details</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			);
-		},
-	},
-];
-
 export default function RolePlays() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -231,9 +139,137 @@ export default function RolePlays() {
 		}
 	};
 
+	const onDeleteRolePlay = async (scenarioId: string) => {
+		try {
+			const { data: responseData, error } = await callApi<ApiResponse<{ status: string; data: null; message: string }>>(
+				`/scenario/delete-scenario`,
+				{
+					scenarioId,
+				}
+			);
+
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				toast.success('Role Play Deleted', { description: 'The Role play has been successfully removed.' });
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Role Play Deletion Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
+
 	useEffect(() => {
 		fetchScenarios();
 	}, [fetchScenarios]);
+
+	const columns: ColumnDef<RolePlay>[] = [
+		{
+			id: 'select',
+			header: ({ table }) => (
+				<Checkbox
+					checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+					aria-label="Select all"
+				/>
+			),
+			cell: ({ row }) => (
+				<Checkbox
+					checked={row.getIsSelected()}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
+					aria-label="Select row"
+				/>
+			),
+			enableSorting: false,
+			enableHiding: false,
+		},
+		{
+			id: 'scenario',
+			header: ({ column }) => {
+				return (
+					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+						Scenario
+						<ArrowUpDown />
+					</Button>
+				);
+			},
+			cell: ({ row }) => {
+				const scenario = row.original.scenario;
+				const scenarioImage = row.original.scenarioImage;
+
+				return (
+					<div className="flex items-center space-x-2">
+						<Avatar>
+							<AvatarImage src={scenarioImage} />
+							<AvatarFallback>RP</AvatarFallback>
+						</Avatar>
+						<span className="lowercase ml-3">{`${scenario}`}</span>
+					</div>
+				);
+			},
+			accessorFn: (row) => `${row.scenario} ${row.scenarioImage}`,
+		},
+		{
+			accessorKey: 'id',
+			header: 'Id',
+			cell: ({ row }) => <div className="lowercase">{row.getValue('id')}</div>,
+		},
+		{
+			accessorKey: 'created_at',
+			header: () => <div>Created At</div>,
+			cell: ({ row }) => {
+				const date = row.getValue('created_at');
+
+				if (!date) return <div className="text-right">—</div>;
+
+				const formattedDate =
+					typeof date === 'string' || typeof date === 'number' ? format(new Date(date), 'EEE do, MMM') : 'Invalid Date';
+
+				return <div className="">{formattedDate}</div>;
+			},
+		},
+		{
+			id: 'actions',
+			enableHiding: false,
+			cell: ({ row }) => {
+				const roleplay = row.original;
+
+				return (
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild className="hover:cursor-pointer">
+							<Button variant="ghost" className="h-8 w-8 p-0">
+								<span className="sr-only">Open menu</span>
+								<MoreHorizontal />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuLabel>Actions</DropdownMenuLabel>
+							<DropdownMenuItem
+								onClick={() => navigator.clipboard.writeText(roleplay.id)}
+								className="hover:cursor-pointer"
+							>
+								Copy Role Play ID
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="hover:cursor-pointer text-red-500"
+								onClick={async () => {
+									const success = await onDeleteRolePlay(row.original.id);
+									if (success) await fetchScenarios();
+								}}
+							>
+								Delete
+							</DropdownMenuItem>
+							{/* <DropdownMenuItem className='hover:cursor-pointer'>View Role play details</DropdownMenuItem> */}
+						</DropdownMenuContent>
+					</DropdownMenu>
+				);
+			},
+		},
+	];
 
 	const table = useReactTable({
 		data: scenario,

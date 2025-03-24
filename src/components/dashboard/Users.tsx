@@ -151,7 +151,7 @@ const columns: ColumnDef<User>[] = [
 
 			return (
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
+					<DropdownMenuTrigger asChild className="hover:cursor-pointer">
 						<Button variant="ghost" className="h-8 w-8 p-0">
 							<span className="sr-only">Open menu</span>
 							<MoreHorizontal />
@@ -159,10 +159,16 @@ const columns: ColumnDef<User>[] = [
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
 						<DropdownMenuLabel>Actions</DropdownMenuLabel>
-						<DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)}>Copy payment ID</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => navigator.clipboard.writeText(user.id)} className="hover:cursor-pointer">
+							Copy user ID
+						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>View customer</DropdownMenuItem>
-						<DropdownMenuItem>View payment details</DropdownMenuItem>
+						<DropdownMenuItem className="hover:cursor-pointer">
+							{user.role === 'user' ? 'Promote user' : 'Demote user'}
+						</DropdownMenuItem>
+						<DropdownMenuItem className="hover:cursor-pointer text-red-500">
+							{user.isSuspended === true ? 'UnSuspend user' : 'Suspend user'}
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			);

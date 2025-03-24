@@ -113,7 +113,7 @@ export default function DashboardStats() {
 
 	if (loading) {
 		return (
-			<div className="py-6">
+			<div className="py-6 pt-0">
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 					{[...Array(6)].map((_, index) => (
 						<Card key={index} className="p-4 min-h-[160px]">
