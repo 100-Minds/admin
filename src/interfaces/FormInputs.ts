@@ -45,3 +45,14 @@ export type AddRolePlayProps = {
 	scenario: string;
 	scenarioImage: File | null;
 };
+
+export type AddModuleProps = {
+	name: string;
+};
+
+export type AddCourseProps = {
+	name: string;
+	moduleId: string;
+	scenario: string;
+	skills: string[];
+};

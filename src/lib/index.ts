@@ -9,6 +9,8 @@ export {
 	type UpdatePasswordsType,
 	type AddPowerSkillType,
 	type AddRolePlayType,
+	type AddModuleType,
+	type AddCourseType,
 } from './validators/validateWithZod';
 
 export { callApi } from './helpers/callApi';

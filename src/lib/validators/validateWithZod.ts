@@ -8,6 +8,8 @@ import {
 	type OtpVerificationProps,
 	type AddPowerSkillProps,
 	type AddRolePlayProps,
+	type AddModuleProps,
+	type AddCourseProps,
 } from '@/interfaces';
 import { zxcvbn, zxcvbnAsync, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
@@ -38,7 +40,9 @@ type FormType =
 	| 'updatePasswords'
 	| 'otpVerification'
 	| 'powerSkill'
-	| 'rolePlay';
+	| 'rolePlay'
+	| 'module'
+	| 'course';
 
 const signUpSchema: z.ZodType<SignUpProps> = z
 	.object({
@@ -317,6 +321,37 @@ const addRolePlaySchema: z.ZodType<AddRolePlayProps> = z.object({
 	scenarioImage: z.instanceof(File, { message: 'Scenario image must be a valid file' }),
 });
 
+const addModuleSchema: z.ZodType<AddModuleProps> = z.object({
+	name: z
+		.string()
+		.min(5, { message: 'Module must be at least 5 characters long' })
+		.max(500, { message: 'Module must be less than 500 characters' })
+		.trim(),
+});
+
+const addCourseSchema: z.ZodType<AddCourseProps> = z.object({
+	name: z
+		.string()
+		.min(5, { message: 'Module must be at least 5 characters long' })
+		.max(100, { message: 'Module must be less than 100 characters' })
+		.trim(),
+
+	moduleId: z
+		.string()
+		.min(5, { message: 'ModuleId must be at least 5 characters long' })
+		.max(36, { message: 'ModuleId must be less than 37 characters' })
+		.trim(),
+	scenario: z
+		.string()
+		.min(5, { message: 'Scenario must be at least 5 characters long' })
+		.max(100, { message: 'Scenario must be less than 100 characters' })
+		.trim(),
+	skills: z
+		.array(z.string())
+		.min(1, { message: 'At least one skill is required' })
+		.max(15, { message: 'Skills must not exceed 15 items' }),
+});
+
 // export const zodValidator = (formType: FormType) => {
 // 	switch (formType) {
 // 		case 'signup':
@@ -355,7 +390,11 @@ export const zodValidator = <T extends FormType>(
 								? AddPowerSkillProps
 								: T extends 'rolePlay'
 									? AddRolePlayProps
-									: UpdatePasswordsProps
+									: T extends 'module'
+										? AddModuleProps
+										: T extends 'course'
+											? AddCourseProps
+											: UpdatePasswordsProps
 > => {
 	const schemaMap = {
 		login: loginSchema,
@@ -367,6 +406,8 @@ export const zodValidator = <T extends FormType>(
 		otpVerification: OtpVerificationSchema,
 		powerSkill: addPowerSkillSchema,
 		rolePlay: addRolePlaySchema,
+		module: addModuleSchema,
+		course: addCourseSchema,
 	};
 
 	return schemaMap[type] as ZodType<
@@ -386,7 +427,11 @@ export const zodValidator = <T extends FormType>(
 									? AddPowerSkillProps
 									: T extends 'rolePlay'
 										? AddRolePlayProps
-										: UpdatePasswordsProps
+										: T extends 'module'
+											? AddModuleProps
+											: T extends 'course'
+												? AddCourseProps
+												: UpdatePasswordsProps
 	>; // TypeScript needs this assertion to match the conditional type
 };
 
@@ -399,3 +444,5 @@ export type UpdatePasswordsType = z.infer<typeof updatePassWordsSchema>;
 export type OtpVerificationType = z.infer<typeof OtpVerificationSchema>;
 export type AddPowerSkillType = z.infer<typeof addPowerSkillSchema>;
 export type AddRolePlayType = z.infer<typeof addRolePlaySchema>;
+export type AddModuleType = z.infer<typeof addModuleSchema>;
+export type AddCourseType = z.infer<typeof addCourseSchema>;

@@ -7,4 +7,4 @@ export { default as PageMetaData } from './PageMetaData';
 export { default as FormErrorMessage } from './FormErrorMessage';
 export { default as Pagination } from './Pagination';
 export { default as Success } from './Success';
-export { DashboardIcon, UsersIcon, SearchIcon, BellIcon, LogoutIcon, ThunderIcon, RolePlayIcon } from './svg';
+export { DashboardIcon, UsersIcon, SearchIcon, BellIcon, LogoutIcon, ThunderIcon, RolePlayIcon, BookIcon } from './svg';
