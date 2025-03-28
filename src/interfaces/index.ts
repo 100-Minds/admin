@@ -1,4 +1,4 @@
-export type { ApiResponse, User, PowerSkill, RolePlay, Module, Course, Lesson } from './ApiResponses';
+export type { ApiResponse, User, PowerSkill, RolePlay, Module, Course } from './ApiResponses';
 export type {
 	ForgotPasswordProps,
 	LoginProps,
