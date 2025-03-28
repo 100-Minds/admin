@@ -77,15 +77,15 @@ export default function RolePlays() {
 	} = useQuery<RolePlay[], Error>({
 		queryKey: ['rolePlay'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<RolePlay[]>>('/scenario/all');
+			const { data: responseData, error } = await callApi<ApiResponse<RolePlay[]>>('/scenario/all');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching role plays.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No role play data returned');
 			}
 			toast.success('Role plays Fetched', { description: 'Successfully fetched role plays.' });
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 
@@ -101,7 +101,6 @@ export default function RolePlays() {
 
 	const onSubmit: SubmitHandler<AddRolePlayType> = async (data: AddRolePlayType) => {
 		try {
-			setIsLoading(true);
 			setIsLoading(true);
 
 			const formData = new FormData();
@@ -360,7 +359,7 @@ export default function RolePlays() {
 									<button
 										type="button"
 										onClick={removeImage}
-										className="bg-red-500 text-white px-3 py-1 rounded-md text-xs shadow-md"
+										className="bg-red-500 text-white px-3 py-1 rounded-md text-xs shadow-md hover:cursor-pointer"
 									>
 										Remove Image
 									</button>

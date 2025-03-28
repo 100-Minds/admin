@@ -75,15 +75,15 @@ export default function PowerSkilll() {
 	} = useQuery<PowerSkill[], Error>({
 		queryKey: ['skills'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<PowerSkill[]>>('/skill/all');
+			const { data: responseData, error } = await callApi<ApiResponse<PowerSkill[]>>('/skill/all');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching skills.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No skill data returned');
 			}
 			toast.success('Skills Fetched', { description: 'Successfully fetched power skills.' });
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 

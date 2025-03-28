@@ -58,6 +58,7 @@ export default function Coursess() {
 	const [error, setError] = React.useState<string | null>(null);
 	const [selectedSkills, setSelectedSkills] = useState<{ id: string; name: string }[]>([]);
 	const [selectKey, setSelectKey] = useState(0);
+	const [fileName, setFileName] = useState<string | null>(null);
 	const queryClient = useQueryClient();
 
 	const {
@@ -79,15 +80,15 @@ export default function Coursess() {
 	} = useQuery<Course[], Error>({
 		queryKey: ['course'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<Course[]>>('/course/get-courses');
+			const { data: responseData, error } = await callApi<ApiResponse<Course[]>>('/course/get-courses');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching courses.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No course data returned');
 			}
 			toast.success('Courses Fetched', { description: 'Successfully fetched courses.' });
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 
@@ -104,12 +105,17 @@ export default function Coursess() {
 	const onSubmit: SubmitHandler<AddCourseType> = async (data: AddCourseType) => {
 		try {
 			setIsLoading(true);
-			const { data: responseData, error } = await callApi<ApiResponse<CourseData>>('/course/create-course', {
-				name: data.name,
-				scenario: data.scenario,
-				moduleId: data.moduleId,
-				skills: data.skills,
-			});
+
+			const formData = new FormData();
+			formData.append('name', data.name);
+			formData.append('scenario', data.scenario);
+			formData.append('moduleId', data.moduleId);
+			formData.append('skills', JSON.stringify(data.skills));
+			if (data.courseImage instanceof File) {
+				formData.append('courseImage', data.courseImage);
+			}
+
+			const { data: responseData, error } = await callApi<ApiResponse<CourseData>>('/course/create-course', formData);
 
 			if (error) {
 				throw new Error(error.message);
@@ -117,12 +123,14 @@ export default function Coursess() {
 
 			if (responseData?.status === 'success') {
 				toast.success('Course Created', { description: 'The course has been added successfully.' });
+				setFileName(null);
 				queryClient.invalidateQueries({ queryKey: ['course'] });
 			}
 		} catch (err) {
 			toast.error('Course Creation Failed', {
 				description: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.',
 			});
+			setFileName(null);
 		} finally {
 			reset();
 			setTimeout(() => {
@@ -163,21 +171,23 @@ export default function Coursess() {
 	} = useQuery<Module[], Error>({
 		queryKey: ['module'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<Module[]>>('/course/get-modules');
+			const { data: responseData, error } = await callApi<ApiResponse<Module[]>>('/course/get-modules');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching course modules.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No module data returned');
 			}
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 
 	useEffect(() => {
 		if (moduleQueryError) {
 			const errorMessage = moduleQueryError.message || 'An unexpected error occurred while fetching modules.';
-			setError(errorMessage);
+			toast.error('Failed to fetch modules', {
+				description: errorMessage,
+			});
 		}
 	}, [moduleQueryError]);
 
@@ -188,21 +198,23 @@ export default function Coursess() {
 	} = useQuery<RolePlay[], Error>({
 		queryKey: ['rolePlay'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<RolePlay[]>>('/scenario/all');
+			const { data: responseData, error } = await callApi<ApiResponse<RolePlay[]>>('/scenario/all');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching role plays.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No role play data returned');
 			}
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 
 	useEffect(() => {
 		if (scenarioQueryError) {
 			const errorMessage = scenarioQueryError.message || 'An unexpected error occurred while fetching role plays.';
-			setError(errorMessage);
+			toast.error('Failed to fetch modules', {
+				description: errorMessage,
+			});
 		}
 	}, [scenarioQueryError]);
 
@@ -213,21 +225,23 @@ export default function Coursess() {
 	} = useQuery<PowerSkill[], Error>({
 		queryKey: ['skills'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<PowerSkill[]>>('/skill/all');
+			const { data: responseData, error } = await callApi<ApiResponse<PowerSkill[]>>('/skill/all');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching skills.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No skill data returned');
 			}
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 
 	useEffect(() => {
 		if (skillsQueryError) {
 			const errorMessage = skillsQueryError.message || 'An unexpected error occurred while fetching skills.';
-			setError(errorMessage);
+			toast.error('Failed to fetch skills', {
+				description: errorMessage,
+			});
 		}
 	}, [skillsQueryError]);
 
@@ -263,6 +277,19 @@ export default function Coursess() {
 		});
 	};
 
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files && e.target.files.length > 0) {
+			const file = e.target.files[0];
+			setValue('courseImage', file);
+			setFileName(file.name);
+		}
+	};
+
+	const removeImage = () => {
+		setValue('courseImage', null);
+		setFileName(null);
+	};
+
 	const columns: ColumnDef<Course>[] = [
 		{
 			id: 'select',
@@ -295,18 +322,19 @@ export default function Coursess() {
 			},
 			cell: ({ row }) => {
 				const name = row.original.name;
+				const image = row.original.courseImage;
 
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src="/icons/Frame 7.svg" />
-							<AvatarFallback>M</AvatarFallback>
+							<AvatarImage src={image} />
+							<AvatarFallback>{'/icons/Frame 7.svg'}</AvatarFallback>
 						</Avatar>
 						<span className="lowercase ml-3">{`${name}`}</span>
 					</div>
 				);
 			},
-			accessorFn: (row) => `${row.name}`,
+			accessorFn: (row) => `${row.name} ${row.courseImage}`,
 		},
 		{
 			accessorKey: 'id',
@@ -432,7 +460,7 @@ export default function Coursess() {
 							{errors.name && <FormErrorMessage error={errors.name} errorMsg={errors.name.message} />}
 						</div>
 
-						<div>
+						<div className="mt-4">
 							<label className="text-sm font-medium text-gray-700">
 								Select Module <span className="text-red-500">*</span>
 							</label>
@@ -443,7 +471,7 @@ export default function Coursess() {
 								disabled={moduleLoading}
 								key={selectKey}
 							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500">
+								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
 									<SelectValue placeholder={moduleLoading ? 'Loading modules...' : 'Choose a module'} />
 								</SelectTrigger>
 
@@ -461,7 +489,7 @@ export default function Coursess() {
 							{errors.moduleId && <FormErrorMessage error={errors.moduleId} errorMsg={errors.moduleId.message} />}
 						</div>
 
-						<div>
+						<div className="mt-4">
 							<label className="text-sm font-medium text-gray-700">
 								Select scenario <span className="text-red-500">*</span>
 							</label>
@@ -472,7 +500,7 @@ export default function Coursess() {
 								disabled={scenarioLoading}
 								key={selectKey}
 							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500">
+								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
 									<SelectValue
 										placeholder={scenarioLoading ? 'Loading role play scenarios...' : 'Choose a role play scenario'}
 									/>
@@ -492,12 +520,48 @@ export default function Coursess() {
 							{errors.scenario && <FormErrorMessage error={errors.scenario} errorMsg={errors.scenario.message} />}
 						</div>
 
+						<div className="mt-4">
+							<label htmlFor="courseImage" className="text-sm font-medium text-gray-700">
+								Course Image<span className="text-red-500">*</span>
+							</label>
+							<div className="relative">
+								<input
+									type="file"
+									id="courseImage"
+									accept="image/*"
+									{...register('courseImage', { required: 'Course image is required' })}
+									onChange={handleFileChange}
+									className="hidden"
+								/>
+								<label
+									htmlFor="courseImage"
+									className="block w-full border border-gray-300 rounded-lg shadow-sm bg-[#F8F8F8] cursor-pointer p-3 text-[13px] text-gray-500 min-h-[45px] text-center"
+								>
+									{fileName ? fileName : 'Choose a file'}
+								</label>
+							</div>
+							{fileName && (
+								<div className="mt-2 flex justify-end ml-auto">
+									<button
+										type="button"
+										onClick={removeImage}
+										className="bg-red-500 text-white px-3 py-1 rounded-md text-xs shadow-md hover:cursor-pointer"
+									>
+										Remove Image
+									</button>
+								</div>
+							)}
+							{errors.courseImage && (
+								<FormErrorMessage error={errors.courseImage} errorMsg={errors.courseImage.message} />
+							)}
+						</div>
+
 						<div className="relative">
 							<label className="text-sm font-medium text-gray-700">
 								Select Skills <span className="text-red-500">*</span>
 							</label>
 							<Select onValueChange={handleSkillChange} key={selectKey}>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500">
+								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
 									<SelectValue placeholder={skillsLoading ? 'Loading power skill...' : 'Choose skills'} />
 								</SelectTrigger>
 

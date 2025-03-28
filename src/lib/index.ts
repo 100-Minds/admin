@@ -11,6 +11,7 @@ export {
 	type AddRolePlayType,
 	type AddModuleType,
 	type AddCourseType,
+	type AddLessonType,
 } from './validators/validateWithZod';
 
 export { callApi } from './helpers/callApi';

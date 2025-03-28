@@ -10,6 +10,7 @@ import {
 	type AddRolePlayProps,
 	type AddModuleProps,
 	type AddCourseProps,
+	type AddLessonProps,
 } from '@/interfaces';
 import { zxcvbn, zxcvbnAsync, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
@@ -42,7 +43,8 @@ type FormType =
 	| 'powerSkill'
 	| 'rolePlay'
 	| 'module'
-	| 'course';
+	| 'course'
+	| 'lesson';
 
 const signUpSchema: z.ZodType<SignUpProps> = z
 	.object({
@@ -335,12 +337,8 @@ const addCourseSchema: z.ZodType<AddCourseProps> = z.object({
 		.min(5, { message: 'Module must be at least 5 characters long' })
 		.max(100, { message: 'Module must be less than 100 characters' })
 		.trim(),
-
-	moduleId: z
-		.string()
-		.min(5, { message: 'ModuleId must be at least 5 characters long' })
-		.max(36, { message: 'ModuleId must be less than 37 characters' })
-		.trim(),
+	courseImage: z.instanceof(File, { message: 'Course image must be a valid file' }),
+	moduleId: z.string().uuid({ message: 'Invalid module ID format' }),
 	scenario: z
 		.string()
 		.min(5, { message: 'Scenario must be at least 5 characters long' })
@@ -350,6 +348,36 @@ const addCourseSchema: z.ZodType<AddCourseProps> = z.object({
 		.array(z.string())
 		.min(1, { message: 'At least one skill is required' })
 		.max(15, { message: 'Skills must not exceed 15 items' }),
+});
+
+const addLessonSchema: z.ZodType<AddLessonProps> = z.object({
+	courseId: z.string().uuid({ message: 'Invalid course ID format' }),
+	title: z
+		.string()
+		.min(5, { message: 'Title must be at least 5 characters long' })
+		.max(100, { message: 'Title must be less than 100 characters' })
+		.trim(),
+	description: z
+		.string()
+		.min(5, { message: 'Description must be at least 5 characters long' })
+		.max(100, { message: 'Description must be less than 100 characters' })
+		.trim(),
+	lessonVideo: z
+		.instanceof(File, { message: 'A valid video file is required' })
+		.refine((file) => file.size <= 500 * 1024 * 1024, {
+			message: 'File size must not exceed 500MB',
+		}),
+	fileName: z
+		.string()
+		.min(3, { message: 'File name must be at least 3 characters long' })
+		.max(255, { message: 'File name must be less than 255 characters' })
+		.trim(),
+	fileType: z.string().regex(/^video\/(mp4|mov|avi|wmv|flv|webm)$/, { message: 'Invalid video file type' }),
+	fileSize: z
+		.number()
+		.min(1024, { message: 'File size must be at least 1KB' })
+		.max(500 * 1024 * 1024, { message: 'File size must not exceed 500MB' }),
+	videoLength: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, { message: 'Invalid video length format (HH:MM:SS)' }),
 });
 
 // export const zodValidator = (formType: FormType) => {
@@ -394,7 +422,9 @@ export const zodValidator = <T extends FormType>(
 										? AddModuleProps
 										: T extends 'course'
 											? AddCourseProps
-											: UpdatePasswordsProps
+											: T extends 'lesson'
+												? AddLessonProps
+												: UpdatePasswordsProps
 > => {
 	const schemaMap = {
 		login: loginSchema,
@@ -408,6 +438,7 @@ export const zodValidator = <T extends FormType>(
 		rolePlay: addRolePlaySchema,
 		module: addModuleSchema,
 		course: addCourseSchema,
+		lesson: addLessonSchema,
 	};
 
 	return schemaMap[type] as ZodType<
@@ -431,7 +462,9 @@ export const zodValidator = <T extends FormType>(
 											? AddModuleProps
 											: T extends 'course'
 												? AddCourseProps
-												: UpdatePasswordsProps
+												: T extends 'lesson'
+													? AddLessonProps
+													: UpdatePasswordsProps
 	>; // TypeScript needs this assertion to match the conditional type
 };
 
@@ -446,3 +479,4 @@ export type AddPowerSkillType = z.infer<typeof addPowerSkillSchema>;
 export type AddRolePlayType = z.infer<typeof addRolePlaySchema>;
 export type AddModuleType = z.infer<typeof addModuleSchema>;
 export type AddCourseType = z.infer<typeof addCourseSchema>;
+export type AddLessonType = z.infer<typeof addLessonSchema>;

@@ -52,7 +52,19 @@ export type AddModuleProps = {
 
 export type AddCourseProps = {
 	name: string;
+	courseImage: File | null;
 	moduleId: string;
 	scenario: string;
 	skills: string[];
+};
+
+export type AddLessonProps = {
+	courseId: string;
+	title: string;
+	description: string;
+	lessonVideo: File | null;
+	fileName: string;
+	fileType: string;
+	fileSize: number;
+	videoLength: string;
 };

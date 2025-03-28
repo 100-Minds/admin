@@ -60,15 +60,15 @@ export function DataTable() {
 	} = useQuery<User[], Error>({
 		queryKey: ['users'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<User[]>>('/user/all');
+			const { data: responseData, error } = await callApi<ApiResponse<User[]>>('/user/all');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching users.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No user data returned');
 			}
 			toast.success('Users Fetched', { description: 'Successfully fetched users.' });
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 

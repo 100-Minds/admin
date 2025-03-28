@@ -77,15 +77,15 @@ export default function DashboardStats() {
 	} = useQuery<Statistics[], Error>({
 		queryKey: ['stats'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<Statistics[]>>('/statistics/stats');
+			const { data: responseData, error } = await callApi<ApiResponse<Statistics[]>>('/statistics/stats');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching stats.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('Failed to Fetch Stats');
 			}
 			toast.success('Stats Fetched', { description: 'Successfully fetched statistics.' });
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 

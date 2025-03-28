@@ -75,15 +75,15 @@ export default function Modulee() {
 	} = useQuery<Module[], Error>({
 		queryKey: ['module'],
 		queryFn: async () => {
-			const { data: apiData, error } = await callApi<ApiResponse<Module[]>>('/course/get-modules');
+			const { data: responseData, error } = await callApi<ApiResponse<Module[]>>('/course/get-modules');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching course modules.');
 			}
-			if (!apiData?.data) {
+			if (!responseData?.data) {
 				throw new Error('No module data returned');
 			}
 			toast.success('Modules Fetched', { description: 'Successfully fetched course modules.' });
-			return apiData.data;
+			return responseData.data;
 		},
 	});
 

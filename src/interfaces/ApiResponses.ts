@@ -39,6 +39,7 @@ export type Module = {
 export type Course = {
 	id: string;
 	name: string;
+	courseImage: string;
 	userId: string;
 	moduleId: string;
 	scenarioName: string | null;
@@ -47,24 +48,20 @@ export type Course = {
 	created_at: string;
 };
 
-export type ICourseChapter = {
-	id: string;
-	title: string;
-	courseId: string;
-	chapterNumber: number;
-	isDeleted: boolean;
-	created_at: Date;
+export type UploadLesson = {
+	signedUrl: string;
+	key: string;
 };
 
-export type ICourseVideo = {
+export type Chapter = {
 	id: string;
-	chapterId: string;
-	videoURL: string;
-	duration: string;
-	//uploadStatus: VideoUploadStatus;
+	title: string;
+	description: string;
+	courseId: string;
+	chapterNumber: number;
+	videoUrl: string;
 	isDeleted: boolean;
-	created_at?: Date;
-	updated_at?: Date;
+	created_at: string;
 };
 
 export type SessionData = User[];
@@ -72,6 +69,8 @@ export type PowerSkillData = PowerSkill[];
 export type RolePlayData = RolePlay[];
 export type ModuleData = Module[];
 export type CourseData = Course[];
+export type LessonData = Chapter[];
+export type UploadLessonData = UploadLesson;
 
 export type ApiResponse<T = Record<string, unknown>> = {
 	status: string;
