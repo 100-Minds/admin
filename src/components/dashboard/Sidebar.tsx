@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DashboardIcon, UsersIcon, LogoutIcon, ThunderIcon, RolePlayIcon, BookIcon } from '../common';
+import { DashboardIcon, UsersIcon, LogoutIcon, ThunderIcon, RolePlayIcon, BookIcon, OpenBookIcon } from '../common';
 
 const menuItems = [
 	{ name: 'Dashboard', icon: DashboardIcon, path: '/dashboard' },
@@ -12,6 +12,8 @@ const menuItems = [
 	{ name: 'Power Skills', icon: ThunderIcon, path: '/power-skills' },
 	{ name: 'Role Play', icon: RolePlayIcon, path: '/role-play' },
 	{ name: 'Courses', icon: BookIcon, path: '/courses' },
+	{ name: 'Journey', icon: OpenBookIcon, path: '/journey' },
+	{ name: 'Teams', icon: UsersIcon, path: '/team' },
 	//{ name: 'Settings', icon: UsersIcon, path: '/settings' },
 ];
 

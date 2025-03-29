@@ -68,3 +68,11 @@ export type AddLessonProps = {
 	fileSize: number;
 	videoLength: string;
 };
+
+export type AddJourneyProps = {
+	moduleId: string;
+};
+
+export type AddTeamProps = {
+	name: string;
+};

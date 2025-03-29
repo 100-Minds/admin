@@ -1,8 +1,8 @@
 'use client';
 
 import { ApiResponse } from '@/interfaces';
-import { RolePlay, RolePlayData } from '@/interfaces/ApiResponses';
-import { AddRolePlayType, callApi, zodValidator } from '@/lib';
+import { Team, TeamData } from '@/interfaces/ApiResponses';
+import { AddTeamType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -48,83 +48,73 @@ import {
 } from '@/components/ui/pagination';
 import React from 'react';
 
-export default function RolePlays() {
+export default function Teamm() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [error, setError] = React.useState<string | null>(null);
-	const [fileName, setFileName] = useState<string | null>(null);
 	const queryClient = useQueryClient();
 
 	const {
 		register,
 		handleSubmit,
 		reset,
-		setValue,
 		formState: { errors, isSubmitting },
-	} = useForm<AddRolePlayType>({
-		resolver: zodResolver(zodValidator('rolePlay')!),
+	} = useForm<AddTeamType>({
+		resolver: zodResolver(zodValidator('team')!),
 		mode: 'onChange',
 		reValidateMode: 'onChange',
 	});
 
 	const {
-		data: scenario,
+		data: teams,
 		isLoading: loading,
 		error: queryError,
-	} = useQuery<RolePlay[], Error>({
-		queryKey: ['rolePlay'],
+	} = useQuery<Team[], Error>({
+		queryKey: ['team'],
 		queryFn: async () => {
-			const { data: responseData, error } = await callApi<ApiResponse<RolePlay[]>>('/scenario/all');
+			const { data: responseData, error } = await callApi<ApiResponse<Team[]>>('/team/all');
 			if (error) {
-				throw new Error(error.message || 'Something went wrong while fetching role plays.');
+				throw new Error(error.message || 'Something went wrong while fetching teams.');
 			}
 			if (!responseData?.data) {
-				throw new Error('No role play data returned');
+				throw new Error('No team data returned');
 			}
-			toast.success('Role plays Fetched', { description: 'Successfully fetched role plays.' });
+			toast.success('Teams Fetched', { description: 'Successfully fetched teams.' });
 			return responseData.data;
 		},
 	});
 
 	useEffect(() => {
 		if (queryError) {
-			const errorMessage = queryError.message || 'An unexpected error occurred while fetching role plays.';
+			const errorMessage = queryError.message || 'An unexpected error occurred while fetching teams.';
 			setError(errorMessage);
-			toast.error('Failed to Role plays', {
+			toast.error('Failed to Teams', {
 				description: errorMessage,
 			});
 		}
 	}, [queryError]);
 
-	const onSubmit: SubmitHandler<AddRolePlayType> = async (data: AddRolePlayType) => {
+	const onSubmit: SubmitHandler<AddTeamType> = async (data: AddTeamType) => {
 		try {
 			setIsLoading(true);
 
-			const formData = new FormData();
-			formData.append('scenario', data.scenario);
-			if (data.scenarioImage instanceof File) {
-				formData.append('scenarioImage', data.scenarioImage);
-			}
-
-			const { data: responseData, error } = await callApi<ApiResponse<RolePlayData>>(
-				'/scenario/create-scenario',
-				formData
-			);
+			const { data: responseData, error } = await callApi<ApiResponse<TeamData>>('/team/create-team', {
+				name: data.name,
+			});
 
 			if (error) {
 				throw new Error(error.message);
 			}
 
 			if (responseData?.status === 'success') {
-				toast.success('Role Play Created', { description: 'The role play scenario has been added successfully.' });
-				setFileName(null);
-				queryClient.invalidateQueries({ queryKey: ['rolePlay'] });
+				toast.success('Team Created', { description: 'The team has been created successfully.' });
+				queryClient.invalidateQueries({ queryKey: ['team'] });
 			}
 		} catch (err) {
-			toast.error('Role Play Creation Failed', {
+			toast.error('Team Creation Failed', {
 				description: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.',
 			});
 		} finally {
@@ -133,27 +123,27 @@ export default function RolePlays() {
 		}
 	};
 
-	const onDeleteRolePlay = async (scenarioId: string) => {
+	const onDeleteTeam = async (teamId: string) => {
 		try {
-			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/scenario/delete-scenario`, {
-				scenarioId,
+			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/team/delete-team`, {
+				teamId,
 			});
 
 			if (error) throw new Error(error.message);
 			if (responseData?.status === 'success') {
-				toast.success('Role Play Deleted', { description: 'The Role play has been successfully removed.' });
+				toast.success('Team Deleted', { description: 'Team has been successfully deleted.' });
 				return true;
 			}
 			return false;
 		} catch (err) {
-			toast.error('Role Play Deletion Failed', {
+			toast.error('Team Deletion Failed', {
 				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
 			});
 			return false;
 		}
 	};
 
-	const columns: ColumnDef<RolePlay>[] = [
+	const columns: ColumnDef<Team>[] = [
 		{
 			id: 'select',
 			header: ({ table }) => (
@@ -174,35 +164,55 @@ export default function RolePlays() {
 			enableHiding: false,
 		},
 		{
-			id: 'scenario',
+			id: 'name',
 			header: ({ column }) => {
 				return (
 					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-						Scenario
+						Name
 						<ArrowUpDown />
 					</Button>
 				);
 			},
 			cell: ({ row }) => {
-				const scenario = row.original.scenario;
-				const scenarioImage = row.original.scenarioImage;
+				const team = row.original.name;
 
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src={scenarioImage} />
-							<AvatarFallback>RP</AvatarFallback>
+							<AvatarImage src="/icons/Frame 7.svg" />
+							<AvatarFallback>TD</AvatarFallback>
 						</Avatar>
-						<span className="lowercase ml-3">{`${scenario}`}</span>
+						<span className="lowercase ml-3">{`${team} `}</span>
 					</div>
 				);
 			},
-			accessorFn: (row) => `${row.scenario} ${row.scenarioImage}`,
+			accessorFn: (row) => `${row.name}`,
 		},
 		{
-			accessorKey: 'id',
-			header: 'Id',
-			cell: ({ row }) => <div className="lowercase">{row.getValue('id')}</div>,
+			id: 'owner',
+			header: ({ column }) => {
+				return (
+					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+						Created By
+						<ArrowUpDown />
+					</Button>
+				);
+			},
+			cell: ({ row }) => {
+				const firstName = row.original.firstName;
+				const lastName = row.original.lastName;
+
+				return (
+					<div className="flex items-center space-x-2">
+						<Avatar>
+							<AvatarImage src="/icons/Frame 7.svg" />
+							<AvatarFallback>TD</AvatarFallback>
+						</Avatar>
+						<span className="lowercase ml-3">{`${firstName} ${lastName} `}</span>
+					</div>
+				);
+			},
+			accessorFn: (row) => `${row.firstName} ${row.lastName}`,
 		},
 		{
 			accessorKey: 'created_at',
@@ -222,7 +232,7 @@ export default function RolePlays() {
 			id: 'actions',
 			enableHiding: false,
 			cell: ({ row }) => {
-				const roleplay = row.original;
+				const team = row.original;
 
 				return (
 					<DropdownMenu>
@@ -234,23 +244,19 @@ export default function RolePlays() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							<DropdownMenuItem
-								onClick={() => navigator.clipboard.writeText(roleplay.id)}
-								className="hover:cursor-pointer"
-							>
-								Copy Role Play ID
+							<DropdownMenuItem onClick={() => navigator.clipboard.writeText(team.id)} className="hover:cursor-pointer">
+								Copy Team ID
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								className="hover:cursor-pointer text-red-500"
 								onClick={async () => {
-									const success = await onDeleteRolePlay(row.original.id);
-									if (success) await queryClient.invalidateQueries({ queryKey: ['rolePlay'] });
+									const success = await onDeleteTeam(row.original.id);
+									if (success) await queryClient.invalidateQueries({ queryKey: ['team'] });
 								}}
 							>
 								Delete
 							</DropdownMenuItem>
-							{/* <DropdownMenuItem className='hover:cursor-pointer'>View Role play details</DropdownMenuItem> */}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);
@@ -259,7 +265,7 @@ export default function RolePlays() {
 	];
 
 	const table = useReactTable({
-		data: scenario ?? [],
+		data: teams ?? [],
 		columns,
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
@@ -280,86 +286,37 @@ export default function RolePlays() {
 	const debouncedFilter = React.useCallback(
 		(value: string) => {
 			const filterFunc = debounce((filterValue: string) => {
-				table.getColumn('scenario')?.setFilterValue(filterValue);
+				table.getColumn('name')?.setFilterValue(filterValue);
 			}, 2000);
 			filterFunc(value);
 		},
 		[table]
 	);
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (e.target.files && e.target.files.length > 0) {
-			const file = e.target.files[0];
-			setValue('scenarioImage', file);
-			setFileName(file.name);
-		}
-	};
-
-	const removeImage = () => {
-		setValue('scenarioImage', null);
-		setFileName(null);
-	};
-
 	return (
 		<>
 			<div className="flex flex-col w-full">
 				<div className="w-full max-w-md space-y-6 px-6 mb-20 mx-auto">
 					<div className="flex flex-col items-center space-y-2">
-						<h2 className="text-center text-xl font-semibold text-gray-900">Create A Scenario For a Role Play</h2>
+						<h2 className="text-center text-xl font-semibold text-gray-900">Create A Team</h2>
 					</div>
 					<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
 						<div>
-							<label htmlFor="scenario" className="text-sm font-medium text-gray-700">
-								Scenario<span className="text-red-500">*</span>
+							<label htmlFor="name" className="text-sm font-medium text-gray-700">
+								Team Name<span className="text-red-500">*</span>
 							</label>
 							<Input
-								{...register('scenario')}
+								{...register('name')}
 								autoFocus
 								type="text"
-								id="scenario"
-								aria-label="Role Play"
-								placeholder="Role Play"
+								id="name"
+								aria-label="Team Name"
+								placeholder="Team Name"
 								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
-									errors.scenario && 'border-red-500 ring-2 ring-red-500'
+									errors.name && 'border-red-500 ring-2 ring-red-500'
 								}`}
 							/>
-							{errors.scenario && <FormErrorMessage error={errors.scenario} errorMsg={errors.scenario.message} />}
-						</div>
-
-						<div className="mt-4">
-							<label htmlFor="scenarioImage" className="text-sm font-medium text-gray-700">
-								Scenario Image<span className="text-red-500">*</span>
-							</label>
-							<div className="relative">
-								<input
-									type="file"
-									id="scenarioImage"
-									accept="image/*"
-									{...register('scenarioImage', { required: 'Scenario image is required' })}
-									onChange={handleFileChange}
-									className="hidden"
-								/>
-								<label
-									htmlFor="scenarioImage"
-									className="block w-full border border-gray-300 rounded-lg shadow-sm bg-[#F8F8F8] cursor-pointer p-3 text-[13px] text-gray-500 min-h-[45px] text-center"
-								>
-									{fileName ? fileName : 'Choose a file'}
-								</label>
-							</div>
-							{fileName && (
-								<div className="mt-2 flex justify-end ml-auto">
-									<button
-										type="button"
-										onClick={removeImage}
-										className="bg-red-500 text-white px-3 py-1 rounded-md text-xs shadow-md hover:cursor-pointer"
-									>
-										Remove Image
-									</button>
-								</div>
-							)}
-							{errors.scenarioImage && (
-								<FormErrorMessage error={errors.scenarioImage} errorMsg={errors.scenarioImage.message} />
-							)}
+							{errors.name && <FormErrorMessage error={errors.name} errorMsg={errors.name.message} />}
 						</div>
 
 						<Button
@@ -424,8 +381,8 @@ export default function RolePlays() {
 					<div className="w-full bg-white rounded-md px-6">
 						<div className="flex items-center py-4">
 							<Input
-								placeholder="Filter Role Play Scenarios..."
-								defaultValue={(table.getColumn('scenario')?.getFilterValue() as string) ?? ''}
+								placeholder="Filter Teams..."
+								defaultValue={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
 								onChange={(event) => debouncedFilter(event.target.value)}
 								className="max-w-sm"
 							/>

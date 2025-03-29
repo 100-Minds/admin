@@ -64,6 +64,23 @@ export type Chapter = {
 	created_at: string;
 };
 
+export type Journey = {
+	moduleId: string;
+	moduleName: string;
+	courseId: string;
+	courseName: string;
+	scenarioId: string;
+	scenarioName: string;
+};
+
+export type Team = {
+	id: string;
+	name: string;
+	firstName: string;
+	lastName: string;
+	created_at: string;
+};
+
 export type SessionData = User[];
 export type PowerSkillData = PowerSkill[];
 export type RolePlayData = RolePlay[];
@@ -71,6 +88,8 @@ export type ModuleData = Module[];
 export type CourseData = Course[];
 export type LessonData = Chapter[];
 export type UploadLessonData = UploadLesson;
+export type JourneyData = Journey[];
+export type TeamData = Team[];
 
 export type ApiResponse<T = Record<string, unknown>> = {
 	status: string;

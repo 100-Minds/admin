@@ -275,14 +275,6 @@ export default function PowerSkilll() {
 		[table]
 	);
 
-	if (error) {
-		return (
-			<div className="w-full bg-white rounded-md px-6 py-4 text-center text-red-500">
-				<p>Error: {error}</p>
-			</div>
-		);
-	}
-
 	return (
 		<>
 			<div className="flex flex-col w-full">
@@ -362,6 +354,10 @@ export default function PowerSkilll() {
 								</TableBody>
 							</Table>
 						</div>
+					</div>
+				) : error ? (
+					<div className="w-full bg-white rounded-md px-6 py-4 text-center text-red-500">
+						<p>Error: {error}</p>
 					</div>
 				) : (
 					<div className="w-full bg-white rounded-md px-6">
