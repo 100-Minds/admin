@@ -125,6 +125,7 @@ const OtpVerification = ({ loginData, onSuccess }: OtpVerificationProps) => {
 											<InputOTPGroup className="flex justify-center gap-2 !my-4">
 												{[...Array(6)].map((_, index) => (
 													<InputOTPSlot
+														autoFocus={index === 0}
 														key={index}
 														index={index}
 														className={`w-12 h-12 text-center text-lg font-semibold outline-none bg-gray-100 focus:ring-2 focus:ring-[#509999]`}

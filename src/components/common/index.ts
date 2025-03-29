@@ -17,4 +17,6 @@ export {
 	RolePlayIcon,
 	BookIcon,
 	OpenBookIcon,
+	SettingsIcon,
+	Hamburger
 } from './svg';

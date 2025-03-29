@@ -6,7 +6,7 @@ import DashboardStats from '@/components/dashboard/Dashboard';
 const Dashboard = () => {
 	return (
 		<>
-			<div className="mb-5">
+			<div className="mb-5 2xl:h-screen">
 				<header className="flex mb-7 p-4 pt-2">
 					<NavItems heading="Dashboard" />
 				</header>

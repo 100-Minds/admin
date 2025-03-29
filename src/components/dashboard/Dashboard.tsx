@@ -32,7 +32,7 @@ function StatCard({ title, value, icon, selected, onClick }: StatCardProps) {
 
 	return (
 		<Card
-			className="p-6 min-h-[160px] transition-all duration-300 cursor-pointer outline-none"
+			className="p-6 h-[160px] transition-all duration-300 cursor-pointer outline-none"
 			style={
 				selected
 					? { background: 'linear-gradient(to right, #407878, #60B8B8)', color: 'white' }

@@ -4,7 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DashboardIcon, UsersIcon, LogoutIcon, ThunderIcon, RolePlayIcon, BookIcon, OpenBookIcon } from '../common';
+import {
+	DashboardIcon,
+	UsersIcon,
+	LogoutIcon,
+	ThunderIcon,
+	RolePlayIcon,
+	BookIcon,
+	OpenBookIcon,
+	SettingsIcon,
+} from '../common';
 
 const menuItems = [
 	{ name: 'Dashboard', icon: DashboardIcon, path: '/dashboard' },
@@ -14,7 +23,7 @@ const menuItems = [
 	{ name: 'Courses', icon: BookIcon, path: '/courses' },
 	{ name: 'Journey', icon: OpenBookIcon, path: '/journey' },
 	{ name: 'Teams', icon: UsersIcon, path: '/team' },
-	//{ name: 'Settings', icon: UsersIcon, path: '/settings' },
+	{ name: 'Settings', icon: SettingsIcon, path: '/settings' },
 ];
 
 const bottomMenuItems = [{ name: 'Logout', icon: LogoutIcon, path: '/logout' }];

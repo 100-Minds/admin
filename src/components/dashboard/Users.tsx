@@ -385,7 +385,6 @@ export function DataTable() {
 							</label>
 							<Input
 								{...register('firstName')}
-								autoFocus
 								type="text"
 								id="firstName"
 								aria-label="First Name"
@@ -403,7 +402,6 @@ export function DataTable() {
 							</label>
 							<Input
 								{...register('lastName')}
-								autoFocus
 								type="text"
 								id="name"
 								aria-label="Last Name"
@@ -421,7 +419,6 @@ export function DataTable() {
 							</label>
 							<Input
 								{...register('username')}
-								autoFocus
 								type="text"
 								id="username"
 								aria-label="User Name"
@@ -462,7 +459,6 @@ export function DataTable() {
 							</label>
 							<Input
 								{...register('password')}
-								autoFocus
 								type="password"
 								id="password"
 								aria-label="Password"
@@ -480,7 +476,6 @@ export function DataTable() {
 							</label>
 							<Input
 								{...register('confirmPassword')}
-								autoFocus
 								type="password"
 								id="confirmPassword"
 								aria-label="confirmPassword"
