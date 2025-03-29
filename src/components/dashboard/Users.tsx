@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
 import debounce from 'lodash/debounce';
+import { FormErrorMessage } from '../common';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -28,6 +29,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import {
 	Pagination,
 	PaginationContent,
@@ -39,19 +41,36 @@ import {
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ApiResponse, User } from '@/interfaces';
+import { SessionData } from '@/interfaces/ApiResponses';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { SignUpType, callApi, zodValidator } from '@/lib';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { callApi } from '@/lib';
 
 export function DataTable() {
+	const [isLoading, setIsLoading] = React.useState(false);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [error, setError] = React.useState<string | null>(null);
+	const [selectKey, setSelectKey] = React.useState(0);
 	const queryClient = useQueryClient();
+
+	const {
+		register,
+		handleSubmit,
+		reset,
+		setValue,
+		formState: { errors, isSubmitting },
+	} = useForm<SignUpType>({
+		resolver: zodResolver(zodValidator('signup')!),
+		mode: 'onChange',
+		reValidateMode: 'onChange',
+	});
 
 	const {
 		data: users,
@@ -79,6 +98,38 @@ export function DataTable() {
 			toast.error('Failed to Fetch Users', { description: errorMessage });
 		}
 	}, [queryError]);
+
+	const onSubmit: SubmitHandler<SignUpType> = async (data: SignUpType) => {
+		try {
+			setIsLoading(true);
+
+			const { data: responseData, error } = await callApi<ApiResponse<SessionData>>('/auth/sign-up', {
+				email: data.email,
+				firstName: data.firstName,
+				lastName: data.lastName,
+				password: data.password,
+				role: data.role,
+				username: data.username,
+			});
+
+			if (error) {
+				throw new Error(error.message);
+			}
+
+			if (responseData?.status === 'success') {
+				toast.success('User Created', { description: 'The user has been registered successfully.' });
+				queryClient.invalidateQueries({ queryKey: ['users'] });
+			}
+		} catch (err) {
+			toast.error('User Creation Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.',
+			});
+		} finally {
+			setIsLoading(false);
+			reset();
+			setSelectKey((prev) => prev + 1);
+		}
+	};
 
 	const onSuspendUser = async (userId: string, suspend: boolean) => {
 		try {
@@ -302,135 +353,285 @@ export function DataTable() {
 		[table]
 	);
 
-	if (loading) {
-		return (
-			<div className="w-full bg-white rounded-md px-6 py-6">
-				<div className="flex items-center py-4">
-					<div className="h-10 w-48 bg-gray-200 rounded animate-pulse max-w-sm"></div>
-
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<div className="h-10 w-32 bg-gray-200 rounded ml-auto animate-pulse"></div>
-						</DropdownMenuTrigger>
-					</DropdownMenu>
-				</div>
-
-				<div className="rounded-md border">
-					<Table>
-						<TableHeader>
-							<TableRow className="bg-[#F8F8F8]">
-								{table
-									.getHeaderGroups()
-									.map((headerGroup) =>
-										headerGroup.headers.map((header) => (
-											<TableHead key={header.id}>
-												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-											</TableHead>
-										))
-									)}
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{Array.from({ length: 10 }).map((_, index) => (
-								<TableRow key={index} className="animate-pulse">
-									{columns.map((_, cellIndex) => (
-										<TableCell key={cellIndex}>
-											<div className="h-4 bg-gray-200 rounded w-full"></div>
-										</TableCell>
-									))}
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</div>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<div className="w-full bg-white rounded-md px-6 py-4 text-center text-red-500">
-				<p>Error: {error}</p>
-			</div>
-		);
-	}
-
 	return (
-		<div className="w-full bg-white rounded-md px-6">
-			<div className="flex items-center py-4">
-				<Input
-					placeholder="Filter emails..."
-					// value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
-					// onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
-					defaultValue={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
-					onChange={(event) => debouncedFilter(event.target.value)}
-					className="max-w-sm"
-				/>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="ml-auto hover:cursor-pointer">
-							Columns <ChevronDown />
+		<>
+			<div className="flex flex-col w-full">
+				<div className="w-full max-w-md space-y-6 px-6 mb-20 mx-auto">
+					<div className="flex flex-col items-center space-y-2">
+						<h2 className="text-center text-xl font-semibold text-gray-900">Register A User</h2>
+					</div>
+					<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+						<div>
+							<label htmlFor="email" className="text-sm font-medium text-gray-700">
+								Email<span className="text-red-500">*</span>
+							</label>
+							<Input
+								{...register('email')}
+								autoFocus
+								type="email"
+								id="email"
+								aria-label="Email"
+								placeholder="Email Address"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.email && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/>
+							{errors.email && <FormErrorMessage error={errors.email} errorMsg={errors.email.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label htmlFor="name" className="text-sm font-medium text-gray-700">
+								First Name<span className="text-red-500">*</span>
+							</label>
+							<Input
+								{...register('firstName')}
+								autoFocus
+								type="text"
+								id="firstName"
+								aria-label="First Name"
+								placeholder="First Name"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.firstName && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/>
+							{errors.firstName && <FormErrorMessage error={errors.firstName} errorMsg={errors.firstName.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label htmlFor="name" className="text-sm font-medium text-gray-700">
+								Last Name<span className="text-red-500">*</span>
+							</label>
+							<Input
+								{...register('lastName')}
+								autoFocus
+								type="text"
+								id="name"
+								aria-label="Last Name"
+								placeholder="Last Name"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.lastName && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/>
+							{errors.lastName && <FormErrorMessage error={errors.lastName} errorMsg={errors.lastName.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label htmlFor="name" className="text-sm font-medium text-gray-700">
+								User Name<span className="text-red-500">*</span>
+							</label>
+							<Input
+								{...register('username')}
+								autoFocus
+								type="text"
+								id="username"
+								aria-label="User Name"
+								placeholder="User Name"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.username && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/>
+							{errors.username && <FormErrorMessage error={errors.username} errorMsg={errors.username.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label className="text-sm font-medium text-gray-700">
+								Select Role <span className="text-red-500">*</span>
+							</label>
+							<Select onValueChange={(value) => setValue('role', value, { shouldValidate: true })} key={selectKey}>
+								<SelectTrigger className="w-full min-h-[40px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
+									<SelectValue placeholder="Choose a role" />
+								</SelectTrigger>
+								<SelectContent
+									position="popper"
+									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
+								>
+									<SelectItem value="user" className="w-full">
+										User
+									</SelectItem>
+									<SelectItem value="admin" className="w-full">
+										Admin
+									</SelectItem>
+								</SelectContent>
+							</Select>
+							{errors.role && <FormErrorMessage error={errors.role} errorMsg={errors.role.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label htmlFor="name" className="text-sm font-medium text-gray-700">
+								Password<span className="text-red-500">*</span>
+							</label>
+							<Input
+								{...register('password')}
+								autoFocus
+								type="password"
+								id="password"
+								aria-label="Password"
+								placeholder="password"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.password && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/>
+							{errors.password && <FormErrorMessage error={errors.password} errorMsg={errors.password.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label htmlFor="name" className="text-sm font-medium text-gray-700">
+								Confirm Password<span className="text-red-500">*</span>
+							</label>
+							<Input
+								{...register('confirmPassword')}
+								autoFocus
+								type="password"
+								id="confirmPassword"
+								aria-label="confirmPassword"
+								placeholder="Confirm Password"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.confirmPassword && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/>
+							{errors.confirmPassword && (
+								<FormErrorMessage error={errors.confirmPassword} errorMsg={errors.confirmPassword.message} />
+							)}
+						</div>
+
+						<Button
+							type="submit"
+							disabled={isSubmitting || isLoading}
+							variant="default"
+							className="w-full bg-[#509999] hover:bg-[#6fb7b7] hover:cursor-pointer text-white font-semibold py-5 rounded"
+						>
+							{isSubmitting || isLoading ? 'Creating...' : 'Create'}
 						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						{table
-							.getAllColumns()
-							.filter((column) => column.getCanHide())
-							.map((column) => {
-								return (
-									<DropdownMenuCheckboxItem
-										key={column.id}
-										className="capitalize"
-										checked={column.getIsVisible()}
-										onCheckedChange={(value) => column.toggleVisibility(!!value)}
-									>
-										{column.id}
-									</DropdownMenuCheckboxItem>
-								);
-							})}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
-			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="bg-[#F8F8F8]">
-								{headerGroup.headers.map((header) => {
-									return (
-										<TableHead key={header.id}>
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-										</TableHead>
-									);
-								})}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell colSpan={columns.length} className="h-24 text-center">
-									No results.
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
-			<div className="flex items-center py-4 px-0">
-				<div className="text-sm text-muted-foreground mr-4 w-full">
-					{table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-					selected.
+					</form>
 				</div>
-				{/* <div className="space-x-2">
+
+				{loading ? (
+					<div className="w-full bg-white rounded-md px-6 py-6">
+						<div className="flex items-center py-4">
+							<div className="h-10 w-48 bg-gray-200 rounded animate-pulse max-w-sm"></div>
+
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<div className="h-10 w-32 bg-gray-200 rounded ml-auto animate-pulse"></div>
+								</DropdownMenuTrigger>
+							</DropdownMenu>
+						</div>
+
+						<div className="rounded-md border">
+							<Table>
+								<TableHeader>
+									<TableRow className="bg-[#F8F8F8]">
+										{table
+											.getHeaderGroups()
+											.map((headerGroup) =>
+												headerGroup.headers.map((header) => (
+													<TableHead key={header.id}>
+														{header.isPlaceholder
+															? null
+															: flexRender(header.column.columnDef.header, header.getContext())}
+													</TableHead>
+												))
+											)}
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{Array.from({ length: 10 }).map((_, index) => (
+										<TableRow key={index} className="animate-pulse">
+											{columns.map((_, cellIndex) => (
+												<TableCell key={cellIndex}>
+													<div className="h-4 bg-gray-200 rounded w-full"></div>
+												</TableCell>
+											))}
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</div>
+				) : error ? (
+					<div className="w-full bg-white rounded-md px-6 py-4 text-center text-red-500">
+						<p>Error: {error}</p>
+					</div>
+				) : (
+					<div className="w-full bg-white rounded-md px-6">
+						<div className="flex items-center py-4">
+							<Input
+								placeholder="Filter emails..."
+								// value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+								// onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
+								defaultValue={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+								onChange={(event) => debouncedFilter(event.target.value)}
+								className="max-w-sm"
+							/>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button variant="outline" className="ml-auto hover:cursor-pointer">
+										Columns <ChevronDown />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end">
+									{table
+										.getAllColumns()
+										.filter((column) => column.getCanHide())
+										.map((column) => {
+											return (
+												<DropdownMenuCheckboxItem
+													key={column.id}
+													className="capitalize"
+													checked={column.getIsVisible()}
+													onCheckedChange={(value) => column.toggleVisibility(!!value)}
+												>
+													{column.id}
+												</DropdownMenuCheckboxItem>
+											);
+										})}
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
+						<div className="rounded-md border">
+							<Table>
+								<TableHeader>
+									{table.getHeaderGroups().map((headerGroup) => (
+										<TableRow key={headerGroup.id} className="bg-[#F8F8F8]">
+											{headerGroup.headers.map((header) => {
+												return (
+													<TableHead key={header.id}>
+														{header.isPlaceholder
+															? null
+															: flexRender(header.column.columnDef.header, header.getContext())}
+													</TableHead>
+												);
+											})}
+										</TableRow>
+									))}
+								</TableHeader>
+								<TableBody>
+									{table.getRowModel().rows?.length ? (
+										table.getRowModel().rows.map((row) => (
+											<TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+												{row.getVisibleCells().map((cell) => (
+													<TableCell key={cell.id}>
+														{flexRender(cell.column.columnDef.cell, cell.getContext())}
+													</TableCell>
+												))}
+											</TableRow>
+										))
+									) : (
+										<TableRow>
+											<TableCell colSpan={columns.length} className="h-24 text-center">
+												No results.
+											</TableCell>
+										</TableRow>
+									)}
+								</TableBody>
+							</Table>
+						</div>
+						<div className="flex items-center py-4 px-0">
+							<div className="text-sm text-muted-foreground mr-4 w-full">
+								{table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
+								selected.
+							</div>
+							{/* <div className="space-x-2">
 					<Button
 						variant="outline"
 						size="sm"
@@ -450,49 +651,54 @@ export function DataTable() {
 						Next
 					</Button>
 				</div> */}
-				<Pagination className="ml-auto mb-0">
-					<PaginationContent>
-						<PaginationItem>
-							<PaginationPrevious
-								onClick={() => table.previousPage()}
-								className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : 'hover:cursor-pointer'}
-							/>
-						</PaginationItem>
-
-						{[...Array(table.getPageCount())].map((_, index) => {
-							if (table.getPageCount() <= 3 || index < 2 || index === table.getPageCount() - 1) {
-								return (
-									<PaginationItem key={index}>
-										<PaginationLink
-											onClick={() => table.setPageIndex(index)}
-											isActive={table.getState().pagination.pageIndex === index}
-											className="hover:cursor-pointer"
-										>
-											{index + 1}
-										</PaginationLink>
+							<Pagination className="ml-auto mb-0">
+								<PaginationContent>
+									<PaginationItem>
+										<PaginationPrevious
+											onClick={() => table.previousPage()}
+											className={
+												!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : 'hover:cursor-pointer'
+											}
+										/>
 									</PaginationItem>
-								);
-							}
-							if (index === 2 && table.getPageCount() > 3) {
-								return (
-									<PaginationItem key={index} className="mb-auto text-xl">
-										...
-										{/* <PaginationEllipsis className='mb-0'/> */}
-									</PaginationItem>
-								);
-							}
-							return null;
-						})}
 
-						<PaginationItem>
-							<PaginationNext
-								onClick={() => table.nextPage()}
-								className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : 'hover:cursor-pointer'}
-							/>
-						</PaginationItem>
-					</PaginationContent>
-				</Pagination>
+									{[...Array(table.getPageCount())].map((_, index) => {
+										if (table.getPageCount() <= 3 || index < 2 || index === table.getPageCount() - 1) {
+											return (
+												<PaginationItem key={index}>
+													<PaginationLink
+														onClick={() => table.setPageIndex(index)}
+														isActive={table.getState().pagination.pageIndex === index}
+														className="hover:cursor-pointer"
+													>
+														{index + 1}
+													</PaginationLink>
+												</PaginationItem>
+											);
+										}
+										if (index === 2 && table.getPageCount() > 3) {
+											return (
+												<PaginationItem key={index} className="mb-auto text-xl">
+													...
+													{/* <PaginationEllipsis className='mb-0'/> */}
+												</PaginationItem>
+											);
+										}
+										return null;
+									})}
+
+									<PaginationItem>
+										<PaginationNext
+											onClick={() => table.nextPage()}
+											className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : 'hover:cursor-pointer'}
+										/>
+									</PaginationItem>
+								</PaginationContent>
+							</Pagination>
+						</div>
+					</div>
+				)}
 			</div>
-		</div>
+		</>
 	);
 }

@@ -66,6 +66,12 @@ const signUpSchema: z.ZodType<SignUpProps> = z
 			.transform((value) => {
 				return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
 			}),
+		username: z
+			.string()
+			.min(3, { message: 'username is required' })
+			.max(50, { message: 'username must be less than 50 characters' })
+			.trim()
+			.toLowerCase(),
 		email: z
 			.string()
 			.min(2, { message: 'Email is required' })
@@ -116,6 +122,7 @@ const signUpSchema: z.ZodType<SignUpProps> = z
 			.transform((value) => {
 				return value.trim();
 			}),
+		role: z.enum(['admin', 'user', 'superuser']),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
 		message: 'Passwords do not match',
