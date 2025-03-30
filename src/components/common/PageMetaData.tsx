@@ -8,6 +8,8 @@ interface MetaDataProps {
 }
 
 export function generatePageMetadata({ title, content, image, url }: MetaDataProps): Metadata {
+	const defaultImage = '/public/LOGO.svg';
+
 	return {
 		title: `${title}`,
 		description: content,
@@ -17,14 +19,28 @@ export function generatePageMetadata({ title, content, image, url }: MetaDataPro
 			locale: 'en_US',
 			title: `${title}`,
 			description: content,
-			url: url || 'https://admin-mmyv.onrender.com', 
-			images: image ? [image] : [],
+			url: url || 'https://admin-mmyv.onrender.com',
+			images: [
+				{
+					url: image || defaultImage,
+					width: 1200,
+					height: 630,
+					alt: `${title} - 100 Minds`,
+				},
+			],
 		},
 		twitter: {
-			card: image ? 'summary_large_image' : 'summary',
+			card: image || defaultImage ? 'summary_large_image' : 'summary',
 			title: `${title}`,
 			description: content,
-			images: image ? [image] : [],
+			images: [
+				{
+					url: image || defaultImage,
+					width: 1200,
+					height: 630,
+					alt: `${title} - 100 Minds`,
+				},
+			],
 		},
 		other: {
 			'og:locale': 'en_US',
