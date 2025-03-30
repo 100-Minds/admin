@@ -18,5 +18,6 @@ export {
 	BookIcon,
 	OpenBookIcon,
 	SettingsIcon,
-	Hamburger
+	Hamburger,
+	XIcon,
 } from './svg';

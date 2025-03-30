@@ -440,7 +440,7 @@ export function DataTable() {
 								</SelectTrigger>
 								<SelectContent
 									position="popper"
-									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
+									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md w-full"
 								>
 									<SelectItem value="user" className="w-full">
 										User
