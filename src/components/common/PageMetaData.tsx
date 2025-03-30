@@ -8,7 +8,7 @@ interface MetaDataProps {
 }
 
 export function generatePageMetadata({ title, content, image, url }: MetaDataProps): Metadata {
-	const defaultImage = '/LOGO.svg';
+	const defaultImage = '/public/100minds.jpg';
 
 	return {
 		title: `${title}`,
