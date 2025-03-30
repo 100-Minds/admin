@@ -78,7 +78,7 @@ export const callApi = async <T>(
 				toast.error('Internal server Error!', {
 					description: error.message,
 				});
-				redirect('/500');
+				throw new Error(apiError.message || 'Internal Server Error');
 			}
 		} else {
 			if (error instanceof Error) {
