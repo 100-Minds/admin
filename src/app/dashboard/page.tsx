@@ -1,5 +1,3 @@
-'use client';
-
 import NavItems from '@/components/common/NavItems';
 import { generatePageMetadata } from '@/components/common/PageMetaData';
 import DashboardStats from '@/components/dashboard/Dashboard';
