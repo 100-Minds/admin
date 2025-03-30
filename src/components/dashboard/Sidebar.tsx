@@ -162,7 +162,7 @@ export function MobileSidebar({
 				</div>
 			</aside>
 
-			{isOpen && <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setIsOpen(false)} />}
+			{isOpen && <div className="fixed inset-0 z-[40] md:hidden" onClick={() => setIsOpen(false)} />}
 		</>
 	);
 }
