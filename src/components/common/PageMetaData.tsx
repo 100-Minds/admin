@@ -28,7 +28,7 @@ export function generatePageMetadata({ title, content, image, url }: MetaDataPro
 			// 		alt: `${title} - 100 Minds`,
 			// 	},
 			// ],
-			images: ['100minds.jpg']
+			images: ['opengraph-image.jpg']
 		},
 		twitter: {
 			card: image || defaultImage ? 'summary_large_image' : 'summary',
