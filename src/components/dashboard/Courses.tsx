@@ -328,7 +328,7 @@ export default function Coursess() {
 					<div className="flex items-center space-x-2">
 						<Avatar>
 							<AvatarImage src={image} />
-							<AvatarFallback>{'/icons/Frame 7.svg'}</AvatarFallback>
+							<AvatarFallback>{'/icons/Course.svg'}</AvatarFallback>
 						</Avatar>
 						<span className="lowercase ml-3">{`${name}`}</span>
 					</div>

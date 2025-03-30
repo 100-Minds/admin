@@ -179,7 +179,7 @@ export default function Teamm() {
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src="/icons/Frame 7.svg" />
+							<AvatarImage src="/icons/Team.svg" />
 							<AvatarFallback>TD</AvatarFallback>
 						</Avatar>
 						<span className="lowercase ml-3">{`${team} `}</span>

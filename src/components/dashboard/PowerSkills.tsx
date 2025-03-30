@@ -178,7 +178,7 @@ export default function PowerSkilll() {
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src="/icons/Frame 7.svg" />
+							<AvatarImage src="/icons/Skill.svg" />
 							<AvatarFallback>SK</AvatarFallback>
 						</Avatar>
 						<span className="lowercase ml-3">{`${powerskill}`}</span>

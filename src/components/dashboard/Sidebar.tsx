@@ -34,7 +34,7 @@ export default function Sidebar() {
 
 	return (
 		<>
-			<aside className="w-[220px] bg-white text-[#000000] flex-col p-4 space-y-6 h-screen py-5 overflow-y-auto hidden md:flex">
+			<aside className="w-[220px] bg-white text-[#000000] flex-col p-4 space-y-6 h-screen py-5 overflow-y-auto hidden md:flex scrollbar-hide">
 				<div className="flex items-center mb-11 mdd:mb-8 mt-7">
 					<Image src="/icons/100minds-logo.png" alt="Logo" className="w-32 h-auto" width={100} height={100} />
 				</div>
@@ -101,7 +101,7 @@ export function MobileSidebar({
 		<>
 			<aside
 				className={cn(
-					'fixed top-0 left-0 h-screen bg-white text-[#000000] flex-col p-4 space-y-6 py-5 overflow-y-auto z-40 transition-transform duration-300 ease-in-out',
+					'fixed top-[-16px] left-[-16px] h-screen bg-white text-[#000000] flex-col p-4 pl-0 space-y-6 py-5 overflow-y-auto z-50 transition-transform duration-300 ease-in-out scrollbar-hide',
 					isOpen ? 'translate-x-0 w-[70%] sms:w-[220px]' : '-translate-x-full delay-200',
 					'md:hidden'
 				)}
@@ -123,11 +123,11 @@ export function MobileSidebar({
 						<Link key={item.name} href={item.path} onClick={() => setIsOpen(false)}>
 							<div className="relative flex items-center">
 								{pathname === item.path && (
-									<div className="absolute left-[-10px] w-1 h-[70%] bg-[#509999] rounded-r-lg" />
+									<div className="absolute left-[5px] w-1 h-[70%] bg-[#509999] rounded-r-lg" />
 								)}
 								<span
 									className={cn(
-										'flex items-center justify-between p-3 rounded-lg transition cursor-pointer text-xs pl-5 w-full',
+										'flex items-center justify-between p-3 rounded-lg transition cursor-pointer text-xs pl-4 w-full ml-3',
 										pathname === item.path ? 'bg-[#F3F3F3]' : 'hover:bg-[#F3F3F3]'
 									)}
 								>
@@ -147,7 +147,7 @@ export function MobileSidebar({
 						<Link key={item.name} href={item.path} onClick={() => setIsOpen(false)}>
 							<span
 								className={cn(
-									'flex items-center justify-between p-3 rounded-lg transition cursor-pointer text-xs text-red-800',
+									'flex items-center justify-between p-3 rounded-lg transition cursor-pointer text-xs text-red-800 ml-3 pl-4',
 									pathname === item.path ? 'bg-[#F8F8F8]' : 'hover:bg-[#F8F8F8]'
 								)}
 							>

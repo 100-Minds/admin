@@ -7,7 +7,7 @@ const Dashboard = () => {
 	return (
 		<>
 			<div className="mb-5 2xl:h-screen">
-				<header className="flex mb-7 p-4 pt-2 w-full">
+				<header className="flex mb-7 p-4 pt-2 w-full sticky top-[-20px] z-30 backdrop-blur-sm">
 					<NavItems heading="Dashboard" />
 				</header>
 
