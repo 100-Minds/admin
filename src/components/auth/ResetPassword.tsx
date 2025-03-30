@@ -34,7 +34,7 @@ const ResetPassword = () => {
 	const password = watch('password', '');
 	const [passwordStrength, setPasswordStrength] = useState<number>(0);
 	const deferredPassword = useDeferredValue(password);
-    
+
 	useEffect(() => {
 		const checkStrength = async () => {
 			if (deferredPassword) {
@@ -76,9 +76,9 @@ const ResetPassword = () => {
 
 	return (
 		<AuthLayout
-			title="Reset Password"
+			//title="Reset Password"
 			heading="Reset Password"
-			content="Reset your password! Follow the instructions on this page to set a new password."
+			//content="Reset your password! Follow the instructions on this page to set a new password."
 			greeting="Reset your password! Follow the instructions on this page to set a new password."
 			withHeader
 			hasSuccess={false}

@@ -1,10 +1,7 @@
-import { PageMetaData } from '@/components/common';
 import type { ReactNode } from 'react';
 
 interface AuthLayoutProps {
 	children: ReactNode;
-	title: string;
-	content: string;
 	heading: string;
 	greeting: string;
 	withHeader?: boolean;
@@ -13,8 +10,6 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({
 	children,
-	title,
-	content,
 	heading,
 	greeting,
 	withHeader = false,
@@ -22,7 +17,6 @@ export default function AuthLayout({
 }: AuthLayoutProps) {
 	return (
 		<main className="flex w-full items-center justify-center bg-white mb-auto mt-20" role="main">
-			<PageMetaData title={title} content={content} />
 			<section className="w-full max-w-md bg-white p-8" aria-label="Authentication form">
 				<div className="flex flex-col items-center space-y-4">
 					{withHeader && (

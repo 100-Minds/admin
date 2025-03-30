@@ -15,8 +15,8 @@ export default function ForgotPasswordSent() {
 
 	return (
 		<AuthLayout
-			title="Password Reset Email Sent"
-			content={`We’ve sent a password reset link to ${email || 'your email'}.`}
+			//title="Password Reset Email Sent"
+			//content={`We’ve sent a password reset link to ${email || 'your email'}.`}
 			withHeader={false}
 			hasSuccess={false}
 			heading=""

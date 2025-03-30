@@ -13,8 +13,7 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import AuthLayout from '@/app/auth/layout';
 import { FormErrorMessage } from '../common';
-import { useState } from 'react';
-import { NextSeo } from 'next-seo';
+import { useEffect, useState } from 'react';
 import OtpVerification from './OtpVerification';
 
 const Login = () => {
@@ -22,6 +21,13 @@ const Login = () => {
 	const [loginData, setLoginData] = useState<LoginType | null>(null);
 	const [showOtpScreen, setShowOtpScreen] = useState(false);
 	const router = useRouter();
+	const { user } = useSession((state) => state);
+
+	useEffect(() => {
+		if (user) {
+			router.replace('/dashboard');
+		}
+	}, [user, router]);
 
 	const {
 		//user,
@@ -74,29 +80,12 @@ const Login = () => {
 
 	return (
 		<>
-			<NextSeo
-				canonical="https://www.admin.100minds"
-				openGraph={{
-					url: 'https://www.admin.100minds',
-					title: 'Sign in to your account!',
-					description: 'Sign in to your admin account to continue using 100 Minds!',
-					images: [
-						{
-							url: 'https://static.100minds/assets/sign-in.png',
-							width: 800,
-							height: 600,
-						},
-					],
-				}}
-				twitter={{ cardType: 'summary_large_image' }}
-			/>
-
 			{showOtpScreen && loginData ? (
 				<OtpVerification loginData={loginData} onSuccess={handleOtpSuccess} />
 			) : (
 				<AuthLayout
-					title="Sign in to your account"
-					content="Sign in to your account to continue using 100 Minds!"
+					// title="Sign in to your account"
+					// content="Sign in to your account to continue using 100 Minds!"
 					heading="Welcome back!"
 					greeting="Sign in to continue"
 					withHeader={true}

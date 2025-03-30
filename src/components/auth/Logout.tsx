@@ -41,8 +41,8 @@ export default function LogoutPage() {
 
 	return (
 		<AuthLayout
-			title="Logging Out"
-			content="You are being logged out..."
+			//title="Logging Out"
+			//content="You are being logged out..."
 			withHeader={false}
 			hasSuccess={false}
 			heading="Logging Out"
