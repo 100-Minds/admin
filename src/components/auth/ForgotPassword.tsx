@@ -48,8 +48,6 @@ const ForgotPasswordPage = () => {
 		<AuthLayout
 			heading="Forgot Password"
 			greeting="Reset your password. Follow the instructions on this page to get your account back!"
-			// title="Forgot Password"
-			// content="Reset your password. Follow the instructions on this page to get your account back!"
 			withHeader
 			hasSuccess={false}
 		>

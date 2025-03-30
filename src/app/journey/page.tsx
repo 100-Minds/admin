@@ -1,6 +1,17 @@
 import DashboardLayout from '../dashboard/layout';
 import NavItems from '@/components/common/NavItems';
+import { generatePageMetadata } from '@/components/common/PageMetaData';
 import Journeyy from '@/components/dashboard/Journey';
+import { Metadata } from 'next';
+
+export const generateMetadata = (): Metadata => {
+	return generatePageMetadata({
+		title: 'Learning Journey - 100 Minds',
+		content: 'Track and enhance your learning journey with 100 Minds Dashboard',
+		url: 'https://admin-mmyv.onrender.com/journey',
+	});
+};
+
 export default function LearningJourney() {
 	return (
 		<DashboardLayout>

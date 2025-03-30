@@ -8,8 +8,6 @@ import { Button } from '../ui/button';
 const ResetPasswordSuccessPage = () => {
 	return (
 		<AuthLayout
-			//title="Success"
-			//content="You have successfully reset your password!"
 			withHeader={false}
 			heading=""
 			greeting=""

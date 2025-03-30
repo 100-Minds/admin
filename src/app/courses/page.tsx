@@ -1,6 +1,17 @@
 import DashboardLayout from '../dashboard/layout';
 import NavItems from '@/components/common/NavItems';
+import { generatePageMetadata } from '@/components/common/PageMetaData';
 import Course from '@/components/dashboard/Course';
+import { Metadata } from 'next';
+
+export const generateMetadata = (): Metadata => {
+	return generatePageMetadata({
+		title: 'Courses - 100 Minds',
+		content: 'Explore and manage courses with 100 Minds Dashboard',
+		url: 'https://admin-mmyv.onrender.com/courses',
+	});
+};
+
 export default function Courses() {
 	return (
 		<DashboardLayout>

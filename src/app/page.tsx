@@ -4,7 +4,7 @@ import { generatePageMetadata } from '@/components/common/PageMetaData';
 
 export const generateMetadata = (): Metadata => {
 	return generatePageMetadata({
-		title: 'Login - 100 Minds',
+		title: 'Sign in - 100 Minds',
 		content: 'Sign in to access 100 Minds admin dashboard',
 		url: 'https://admin-mmyv.onrender.com',
 	});

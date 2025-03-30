@@ -84,8 +84,6 @@ const Login = () => {
 				<OtpVerification loginData={loginData} onSuccess={handleOtpSuccess} />
 			) : (
 				<AuthLayout
-					// title="Sign in to your account"
-					// content="Sign in to your account to continue using 100 Minds!"
 					heading="Welcome back!"
 					greeting="Sign in to continue"
 					withHeader={true}

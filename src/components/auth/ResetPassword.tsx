@@ -76,9 +76,7 @@ const ResetPassword = () => {
 
 	return (
 		<AuthLayout
-			//title="Reset Password"
 			heading="Reset Password"
-			//content="Reset your password! Follow the instructions on this page to set a new password."
 			greeting="Reset your password! Follow the instructions on this page to set a new password."
 			withHeader
 			hasSuccess={false}

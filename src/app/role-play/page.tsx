@@ -1,6 +1,17 @@
 import DashboardLayout from '../dashboard/layout';
 import NavItems from '@/components/common/NavItems';
+import { generatePageMetadata } from '@/components/common/PageMetaData';
 import RolePlays from '@/components/dashboard/RolePlay';
+import { Metadata } from 'next';
+
+export const generateMetadata = (): Metadata => {
+	return generatePageMetadata({
+		title: 'Role Play - 100 Minds',
+		content: 'Engage in interactive role-playing scenarios with 100 Minds Dashboard',
+		url: 'https://admin-mmyv.onrender.com/role-play',
+	});
+};
+
 export default function RolePlay() {
 	return (
 		<DashboardLayout>

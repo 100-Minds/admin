@@ -8,7 +8,6 @@ export const generateMetadata = (): Metadata => {
 	return generatePageMetadata({
 		title: 'Power Skills - 100 Minds',
 		content: 'Explore and develop your power skills with 100 Minds',
-		//image: '/path/to/power-skills-image.png', // Optional: Add an image URL for Open Graph and Twitter
 		url: 'https://admin-mmyv.onrender.com/power-skills',
 	});
 };
