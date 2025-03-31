@@ -36,7 +36,7 @@ export default function Sidebar() {
 		<>
 			<aside className="w-[220px] bg-white text-[#000000] flex-col p-4 space-y-6 h-screen py-5 overflow-y-auto hidden md:flex scrollbar-hide">
 				<div className="flex items-center mb-11 mdd:mb-8 mt-7">
-					<Image src="/icons/100minds-logo.png" alt="Logo" className="w-32 h-auto" width={100} height={100} />
+					<Image src="/icons/100minds-logo.png" alt="Logo" className="w-32 h-17" width={100} height={100} />
 				</div>
 
 				<nav className="flex flex-col gap-4 flex-grow">
@@ -106,9 +106,9 @@ export function MobileSidebar({
 					'md:hidden'
 				)}
 			>
-				<div className="flex items-center justify-between mb-14">
+				<div className="flex items-center justify-between mb-8">
 					<div className="flex items-center mt-7">
-						<Image src="/icons/100minds-logo.png" alt="Logo" className="w-28 h-auto" width={100} height={100} />
+						<Image src="/icons/100minds-logo.png" alt="Logo" className="w-28 h-17" width={100} height={100} />
 					</div>
 					<button
 						className="cursor-pointer bg-[#F3F3F3] rounded-xl p-2 md:hidden mt-5"
