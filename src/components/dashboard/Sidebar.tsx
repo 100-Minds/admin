@@ -101,13 +101,13 @@ export function MobileSidebar({
 		<>
 			<aside
 				className={cn(
-					'fixed top-[-16px] left-[-16px] h-screen bg-white text-[#000000] flex-col p-4 pl-0 space-y-6 py-5 overflow-y-auto z-50 transition-transform duration-300 ease-in-out scrollbar-hide',
-					isOpen ? 'translate-x-0 w-[70%] sms:w-[220px]' : '-translate-x-full delay-200',
+					'fixed top-0 left-0 h-screen bg-white text-[#000000] flex-col p-4 pl-0 space-y-6 py-5 overflow-y-auto z-[9999] transition-transform duration-300 ease-in-out scrollbar-hide',
+					isOpen ? 'translate-x-0 w-[70%] sms:w-[220px]' : '-translate-x-full',
 					'md:hidden'
 				)}
 			>
 				<div className="flex items-center justify-between mb-8">
-					<div className="flex items-center mt-7">
+					<div className="flex items-center mt-7 ml-3">
 						<Image src="/icons/100minds-logo.png" alt="Logo" className="w-28 h-17" width={100} height={100} />
 					</div>
 					<button
@@ -162,7 +162,7 @@ export function MobileSidebar({
 				</div>
 			</aside>
 
-			{isOpen && <div className="fixed inset-0 z-[40] md:hidden" onClick={() => setIsOpen(false)} />}
+			{isOpen && <div className="fixed inset-0 bg-black/60 z-[9998] md:hidden" onClick={() => setIsOpen(false)} />}
 		</>
 	);
 }

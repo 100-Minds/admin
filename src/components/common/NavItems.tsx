@@ -4,15 +4,19 @@ import { Input } from '@/components/ui/input';
 import { SearchIcon, BellIcon } from '../common';
 import Profile from '../dashboard/Profile';
 import { Hamburger } from '../common';
-import { useState } from 'react';
-import { MobileSidebar } from '../dashboard/Sidebar';
 
-export default function NavItems({ heading }: { heading: string }) {
-	const [isOpen, setIsOpen] = useState(false);
-
+export default function NavItems({
+	heading,
+	isOpen,
+	setIsOpen,
+}: {
+	heading: string;
+	isOpen: boolean;
+	setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
 	return (
 		<div className="w-full">
-			<div className="w-full flex items-center gap-4 justify-between">
+			<div className="w-full flex items-center gap-4 justify-between mt-5">
 				<div className="flex items-center gap-4">
 					<button onClick={() => setIsOpen(!isOpen)} className="cursor-pointer bg-white rounded-xl p-2.5 md:hidden">
 						<Hamburger className="w-6 h-6" />
@@ -49,8 +53,6 @@ export default function NavItems({ heading }: { heading: string }) {
 					className="pl-10 pr-4 py-[23px] rounded-xl bg-white text-black border-none text-sm placeholder:text-[12px]"
 				/>
 			</div>
-
-			{isOpen && <MobileSidebar isOpen={isOpen} setIsOpen={setIsOpen} />}
 		</div>
 	);
 }

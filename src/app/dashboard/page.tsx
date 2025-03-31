@@ -1,4 +1,3 @@
-import NavItems from '@/components/common/NavItems';
 import { generatePageMetadata } from '@/components/common/PageMetaData';
 import DashboardStats from '@/components/dashboard/Dashboard';
 import { Metadata } from 'next';
@@ -15,10 +14,6 @@ const Dashboard = () => {
 	return (
 		<>
 			<div className="mb-5 2xl:h-screen">
-				<header className="flex mb-7 p-4 pt-2 w-full sticky top-[-20px] z-30 backdrop-blur-sm">
-					<NavItems heading="Dashboard" />
-				</header>
-
 				<div className="p-4 pt-0">
 					<DashboardStats />
 				</div>
