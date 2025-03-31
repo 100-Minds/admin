@@ -22,13 +22,6 @@ export type ForgotPasswordProps = {
 	email: string;
 };
 
-export type UpdateProfileProps = {
-	firstName?: string;
-	lastName?: string;
-	// email?: string;
-	phoneNumber?: string;
-};
-
 export type UpdatePasswordsProps = {
 	oldPassword: string;
 	newPassword: string;
@@ -77,4 +70,12 @@ export type AddJourneyProps = {
 
 export type AddTeamProps = {
 	name: string;
+};
+
+export type UpdateProfileProps = {
+	firstName?: string | null;
+	lastName?: string | null;
+	email?: string | null;
+	username?: string | null;
+	photo?: File | null;
 };

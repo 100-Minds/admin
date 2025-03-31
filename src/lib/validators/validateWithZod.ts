@@ -19,6 +19,17 @@ import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
 import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 import { z, ZodType } from 'zod';
 
+const ACCEPTED_IMAGE_TYPES = [
+	'image/jpeg', // JPEG
+	'image/png', // PNG
+	'image/gif', // GIF
+	'image/webp', // WebP
+	'image/bmp', // BMP
+	'image/tiff', // TIFF
+	'image/svg+xml', // SVG
+	'image/heic', // HEIC (Apple’s format, if supported)
+];
+const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB in bytes
 const options = {
 	dictionary: {
 		...zxcvbnCommonPackage.dictionary,
@@ -216,25 +227,83 @@ const resetPasswordSchema: z.ZodType<ResetPasswordProps> = z
 		path: ['confirmPassword'],
 	});
 
-const updateProfileSchema: z.ZodType<UpdateProfileProps> = z.object({
-	firstName: z
-		.string()
-		.min(2, { message: 'First Name is required' })
-		.max(50, { message: 'First Name must be less than 50 characters' })
-		.transform((value) => {
-			return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
-		})
-		.optional(),
-	lastName: z
-		.string()
-		.min(2, { message: 'Last Name is required' })
-		.max(50, { message: 'Last Name must be less than 50 characters' })
-		.transform((value) => {
-			return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
-		})
-		.optional(),
-	phoneNumber: z.string().optional(),
-});
+const updateProfileSchema: z.ZodType<UpdateProfileProps> = z
+	.object({
+		firstName: z
+			.string()
+			.min(0, { message: 'First Name is required' })
+			.max(50, { message: 'First Name must be less than 50 characters' })
+			.transform((value) => {
+				return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.optional(),
+		lastName: z
+			.string()
+			.min(0, { message: 'Last Name is required' })
+			.max(50, { message: 'Last Name must be less than 50 characters' })
+			.transform((value) => {
+				return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.optional(),
+		username: z
+			.string()
+			.min(0, { message: 'username is required' })
+			.max(50, { message: 'username must be less than 50 characters' })
+			.trim()
+			.toLowerCase()
+			.optional(),
+		email: z
+			.string()
+			// .email({ message: 'Invalid email address' })
+			// .regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, {
+			// 	message: 'Enter a valid email',
+			// })
+			.transform((value) => {
+				return value.toLowerCase().trim();
+			})
+			.optional()
+			.nullable(),
+		photo: z
+			.any() // Allow File or FileList
+			.optional()
+			.nullable()
+			.refine(
+				(file) => {
+					// If no file is provided (undefined or null), it's valid (optional)
+					if (!file) return true;
+
+					// If file is a FileList (from input), check the first file
+					if (file instanceof FileList && file.length === 0) return true; // Empty FileList is valid
+
+					// If file is a single File or the first item in FileList
+					const targetFile = file instanceof FileList ? file[0] : file;
+
+					// Check if it's a File (not FileList or other type)
+					if (!(targetFile instanceof File)) {
+						return false;
+					}
+
+					// Validate file type
+					const isValidType = ACCEPTED_IMAGE_TYPES.includes(targetFile.type);
+					if (!isValidType) {
+						return false;
+					}
+
+					// Validate file size
+					const isValidSize = targetFile.size <= MAX_FILE_SIZE;
+					if (!isValidSize) {
+						return false;
+					}
+
+					return true;
+				},
+				{
+					message:
+						'Invalid file. Choose an image (JPEG, PNG, GIF, WebP, BMP, TIFF, or SVG) with a maximum size of 8MB.',
+				}
+			),
+	})
+	.partial();
 
 const updatePassWordsSchema: z.ZodType<UpdatePasswordsProps> = z
 	.object({
