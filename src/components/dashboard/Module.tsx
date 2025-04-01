@@ -4,7 +4,7 @@ import { ApiResponse } from '@/interfaces';
 import { Module, ModuleData } from '@/interfaces/ApiResponses';
 import { AddModuleType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
@@ -47,6 +47,7 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React from 'react';
+import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 
 export default function Modulee() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +56,10 @@ export default function Modulee() {
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [error, setError] = React.useState<string | null>(null);
+	const [editingRowId, setEditingRowId] = useState<string | null>(null);
+	const [editedData, setEditedData] = useState<Partial<Module>>({});
+	const skipPageResetRef = useRef(false);
+	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
 
 	const {
@@ -142,6 +147,49 @@ export default function Modulee() {
 		}
 	};
 
+	const onEditModule = async (moduleId: string, updatedData: Partial<Module>) => {
+		try {
+			const dataToSend = {
+				name: updatedData.name,
+			};
+
+			Object.keys(dataToSend).forEach((key) => {
+				if (dataToSend[key as keyof typeof dataToSend] === undefined) {
+					delete (dataToSend as Record<string, unknown>)[key];
+				}
+			});
+
+			if (Object.keys(dataToSend).length === 0) {
+				toast.warning('No changes to update', { description: 'No fields were modified.' });
+				return false;
+			}
+
+			const { data: responseData, error } = await callApi<ApiResponse<ModuleData>>(`/course/update-module`, {
+				moduleId,
+				...dataToSend,
+			});
+
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				toast.success('Module Updated', { description: 'Module has been successfully updated.' });
+				queryClient.invalidateQueries({ queryKey: ['module'] });
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Module Update Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
+
+	useEffect(() => {
+		if (editingRowId && inputRefs.current[editingRowId]) {
+			inputRefs.current[editingRowId]?.focus();
+		}
+	}, [editingRowId]);
+
 	const columns: ColumnDef<Module>[] = [
 		{
 			id: 'select',
@@ -174,6 +222,21 @@ export default function Modulee() {
 			},
 			cell: ({ row }) => {
 				const name = row.original.name;
+				const isEditing = editingRowId === row.original.id;
+
+				if (isEditing) {
+					return (
+						<Input
+							ref={(el) => {
+								inputRefs.current[row.original.id] = el;
+							}}
+							value={editedData.name || name}
+							onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
+							className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+							autoFocus
+						/>
+					);
+				}
 
 				return (
 					<div className="flex items-center space-x-2">
@@ -211,6 +274,7 @@ export default function Modulee() {
 			enableHiding: false,
 			cell: ({ row }) => {
 				const modules = row.original;
+				const isEditing = editingRowId === modules.id;
 
 				return (
 					<DropdownMenu>
@@ -222,23 +286,68 @@ export default function Modulee() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							<DropdownMenuItem
-								onClick={() => navigator.clipboard.writeText(modules.id)}
-								className="hover:cursor-pointer"
-							>
-								Copy Module ID
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								className="hover:cursor-pointer text-red-500"
-								onClick={async () => {
-									const success = await onDeleteModule(row.original.id);
-									if (success) await queryClient.invalidateQueries({ queryKey: ['module'] });
-								}}
-							>
-								Delete
-							</DropdownMenuItem>
-							{/* <DropdownMenuItem className="hover:cursor-pointer">View Skill details</DropdownMenuItem> */}
+
+							{!isEditing ? (
+								<>
+									<DropdownMenuItem
+										onClick={() => navigator.clipboard.writeText(modules.id)}
+										className="hover:cursor-pointer"
+									>
+										<CopyIcon className=" h-4 w-4" />
+										Copy Module ID
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => {
+											setEditingRowId(modules.id);
+											setEditedData(modules);
+											skipPageResetRef.current = true;
+										}}
+										className="hover:cursor-pointer"
+									>
+										<EditIcon className=" h-4 w-4" />
+										Edit
+									</DropdownMenuItem>
+
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										className="hover:cursor-pointer text-red-500"
+										onClick={async () => {
+											const success = await onDeleteModule(row.original.id);
+											if (success) await queryClient.invalidateQueries({ queryKey: ['module'] });
+										}}
+									>
+										<DeleteIcon className=" h-4 w-4" />
+										Delete
+									</DropdownMenuItem>
+								</>
+							) : (
+								<>
+									<DropdownMenuItem
+										onClick={async () => {
+											const success = await onEditModule(modules.id, editedData);
+											if (success) {
+												setEditedData({});
+												setEditingRowId(null);
+												skipPageResetRef.current = true;
+											}
+										}}
+										className="hover:cursor-pointer"
+									>
+										<SaveIcon className=" h-4 w-4" />
+										Save
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => {
+											setEditingRowId(null);
+											setEditedData({});
+										}}
+										className="hover:cursor-pointer text-red-500"
+									>
+										<XIcon className=" h-4 w-4" />
+										Cancel
+									</DropdownMenuItem>
+								</>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);
@@ -263,6 +372,8 @@ export default function Modulee() {
 			columnVisibility,
 			rowSelection,
 		},
+		autoResetPageIndex: !skipPageResetRef.current,
+		autoResetExpanded: !skipPageResetRef.current,
 	});
 
 	const debouncedFilter = React.useCallback(

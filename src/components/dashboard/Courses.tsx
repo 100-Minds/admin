@@ -4,7 +4,7 @@ import { ApiResponse } from '@/interfaces';
 import { Course, CourseData, Module, PowerSkill, RolePlay } from '@/interfaces/ApiResponses';
 import { AddCourseType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
@@ -48,6 +48,7 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React from 'react';
+import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 
 export default function Coursess() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +60,10 @@ export default function Coursess() {
 	const [selectedSkills, setSelectedSkills] = useState<{ id: string; name: string }[]>([]);
 	const [selectKey, setSelectKey] = useState(0);
 	const [fileName, setFileName] = useState<string | null>(null);
+	const [editingRowId, setEditingRowId] = useState<string | null>(null);
+	const [editedData, setEditedData] = useState<Partial<Course>>({});
+	const skipPageResetRef = useRef(false);
+	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
 
 	const {
@@ -163,6 +168,50 @@ export default function Coursess() {
 			return false;
 		}
 	};
+
+	const onEditCourse = async (courseId: string, updatedData: Partial<Course>) => {
+		try {
+			const dataToSend = {
+				name: updatedData.name,
+				scenario: updatedData.scenarioName,
+			};
+
+			Object.keys(dataToSend).forEach((key) => {
+				if (dataToSend[key as keyof typeof dataToSend] === undefined) {
+					delete (dataToSend as Record<string, unknown>)[key];
+				}
+			});
+
+			if (Object.keys(dataToSend).length === 0) {
+				toast.warning('No changes to update', { description: 'No fields were modified.' });
+				return false;
+			}
+
+			const { data: responseData, error } = await callApi<ApiResponse<CourseData>>(`/course/update-course`, {
+				courseId,
+				...dataToSend,
+			});
+
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				toast.success('Course Updated', { description: 'Course has been successfully updated.' });
+				queryClient.invalidateQueries({ queryKey: ['course'] });
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Course Update Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
+
+	useEffect(() => {
+		if (editingRowId && inputRefs.current[editingRowId]) {
+			inputRefs.current[editingRowId]?.focus();
+		}
+	}, [editingRowId]);
 
 	const {
 		data: modules,
@@ -323,6 +372,21 @@ export default function Coursess() {
 			cell: ({ row }) => {
 				const name = row.original.name;
 				const image = row.original.courseImage;
+				const isEditing = editingRowId === row.original.id;
+
+				if (isEditing) {
+					return (
+						<Input
+							ref={(el) => {
+								inputRefs.current[row.original.id] = el;
+							}}
+							value={editedData.name || name}
+							onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
+							className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+							autoFocus
+						/>
+					);
+				}
 
 				return (
 					<div className="flex items-center space-x-2">
@@ -349,7 +413,37 @@ export default function Coursess() {
 		{
 			accessorKey: 'scenarioName',
 			header: 'Scenario',
-			cell: ({ row }) => <div className="lowercase">{row.getValue('scenarioName')}</div>,
+			cell: ({ row }) => {
+				const scenarios = row.original;
+				const isEditing = editingRowId === scenarios.id;
+
+				if (isEditing) {
+					const currentScenario = scenarios.scenarioName || '';
+					return (
+						<Select
+							value={editedData.scenarioName || currentScenario}
+							onValueChange={(value) => setEditedData({ ...editedData, scenarioName: value })}
+							disabled={scenarioLoading}
+						>
+							<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
+								<SelectValue placeholder={scenarioLoading ? 'Loading Scenarios...' : 'Choose a role play scenario'} />
+							</SelectTrigger>
+							<SelectContent
+								position="popper"
+								className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
+							>
+								{scenario?.map((scene) => (
+									<SelectItem key={scene.id} value={scene.scenario} className="w-full">
+										{scene.scenario}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					);
+				}
+
+				return <div className="lowercase">{row.getValue('scenarioName')}</div>;
+			},
 		},
 		{
 			accessorKey: 'created_at',
@@ -370,6 +464,7 @@ export default function Coursess() {
 			enableHiding: false,
 			cell: ({ row }) => {
 				const courses = row.original;
+				const isEditing = editingRowId === courses.id;
 
 				return (
 					<DropdownMenu>
@@ -381,7 +476,7 @@ export default function Coursess() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							<DropdownMenuItem
+							{/* <DropdownMenuItem
 								onClick={() => navigator.clipboard.writeText(courses.id)}
 								className="hover:cursor-pointer"
 							>
@@ -396,8 +491,69 @@ export default function Coursess() {
 								}}
 							>
 								Delete
-							</DropdownMenuItem>
-							{/* <DropdownMenuItem className="hover:cursor-pointer">View Skill details</DropdownMenuItem> */}
+							</DropdownMenuItem> */}
+
+							{!isEditing ? (
+								<>
+									<DropdownMenuItem
+										onClick={() => navigator.clipboard.writeText(courses.id)}
+										className="hover:cursor-pointer"
+									>
+										<CopyIcon className=" h-4 w-4" />
+										Copy Course ID
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => {
+											setEditingRowId(courses.id);
+											setEditedData(courses);
+											skipPageResetRef.current = true;
+										}}
+										className="hover:cursor-pointer"
+									>
+										<EditIcon className=" h-4 w-4" />
+										Edit
+									</DropdownMenuItem>
+
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										className="hover:cursor-pointer text-red-500"
+										onClick={async () => {
+											const success = await onDeleteCourse(row.original.id);
+											if (success) await queryClient.invalidateQueries({ queryKey: ['course'] });
+										}}
+									>
+										<DeleteIcon className=" h-4 w-4" />
+										Delete
+									</DropdownMenuItem>
+								</>
+							) : (
+								<>
+									<DropdownMenuItem
+										onClick={async () => {
+											const success = await onEditCourse(courses.id, editedData);
+											if (success) {
+												setEditedData({});
+												setEditingRowId(null);
+												skipPageResetRef.current = true;
+											}
+										}}
+										className="hover:cursor-pointer"
+									>
+										<SaveIcon className=" h-4 w-4" />
+										Save
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => {
+											setEditingRowId(null);
+											setEditedData({});
+										}}
+										className="hover:cursor-pointer text-red-500"
+									>
+										<XIcon className=" h-4 w-4" />
+										Cancel
+									</DropdownMenuItem>
+								</>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);
@@ -422,6 +578,8 @@ export default function Coursess() {
 			columnVisibility,
 			rowSelection,
 		},
+		autoResetPageIndex: !skipPageResetRef.current,
+		autoResetExpanded: !skipPageResetRef.current,
 	});
 
 	const debouncedFilter = React.useCallback(

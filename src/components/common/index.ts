@@ -20,4 +20,8 @@ export {
 	Hamburger,
 	XIcon,
 	CameraIcon,
+	EditIcon,
+	CopyIcon,
+	DeleteIcon,
+	SaveIcon,
 } from './svg';

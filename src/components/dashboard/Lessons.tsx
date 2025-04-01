@@ -4,7 +4,7 @@ import { ApiResponse } from '@/interfaces';
 import { Course, Chapter, UploadLessonData } from '@/interfaces/ApiResponses';
 import { AddLessonType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
@@ -49,6 +49,7 @@ import {
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { isValidUUID } from '@/lib/helpers/isValidUUID';
+import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 
 export default function Lessonn() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +64,9 @@ export default function Lessonn() {
 	const [error, setError] = React.useState<string | null>(null);
 	const [courseId, setCourseId] = useState<string>('');
 	const [selectKey, setSelectKey] = useState(0);
+	const [editingRowId, setEditingRowId] = useState<string | null>(null);
+	const [editedData, setEditedData] = useState<Partial<AddLessonType>>({});
+	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
 
 	const {
@@ -258,6 +262,50 @@ export default function Lessonn() {
 		}
 	};
 
+	const onEditLesson = async (chapterId: string, updatedData: Partial<AddLessonType>) => {
+		try {
+			const dataToSend = {
+				title: updatedData.title,
+				description: updatedData.description,
+			};
+
+			Object.keys(dataToSend).forEach((key) => {
+				if (dataToSend[key as keyof typeof dataToSend] === undefined) {
+					delete (dataToSend as Record<string, unknown>)[key];
+				}
+			});
+
+			if (Object.keys(dataToSend).length === 0) {
+				toast.warning('No changes to update', { description: 'No fields were modified.' });
+				return false;
+			}
+
+			const { data: responseData, error } = await callApi<ApiResponse<AddLessonType>>(`/course/update-lesson`, {
+				chapterId,
+				...dataToSend,
+			});
+
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				toast.success('Lesson Updated', { description: 'Lesson has been successfully updated.' });
+				queryClient.invalidateQueries({ queryKey: ['lesson'] });
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Lesson Update Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
+
+	useEffect(() => {
+		if (editingRowId && inputRefs.current[editingRowId]) {
+			inputRefs.current[editingRowId]?.focus();
+		}
+	}, [editingRowId]);
+
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file) {
@@ -265,7 +313,6 @@ export default function Lessonn() {
 			setFileType(file.type);
 			setFileSize(file.size);
 			setValue('lessonVideo', file, { shouldValidate: true });
-			//trigger('lessonVideo');
 
 			setValue('fileName', file.name, { shouldValidate: true });
 			setValue('fileType', file.type, { shouldValidate: true });
@@ -333,6 +380,21 @@ export default function Lessonn() {
 				},
 				cell: ({ row }) => {
 					const title = row.original.title;
+					const isEditing = editingRowId === row.original.id;
+
+					if (isEditing) {
+						return (
+							<Input
+								ref={(el) => {
+									inputRefs.current[row.original.id] = el;
+								}}
+								value={editedData.title || title}
+								onChange={(e) => setEditedData({ ...editedData, title: e.target.value })}
+								className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+								autoFocus
+							/>
+						);
+					}
 
 					return (
 						<div className="flex items-center space-x-2">
@@ -346,10 +408,38 @@ export default function Lessonn() {
 				},
 				accessorFn: (row) => `${row.title}`,
 			},
+
 			{
-				accessorKey: 'description',
-				header: 'Description',
-				cell: ({ row }) => <div className="lowercase">{row.getValue('description')}</div>,
+				id: 'description',
+				header: ({ column }) => {
+					return (
+						<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+							Description
+							<ArrowUpDown />
+						</Button>
+					);
+				},
+				cell: ({ row }) => {
+					const description = row.original.description;
+					const isEditing = editingRowId === row.original.id;
+
+					if (isEditing) {
+						return (
+							<Input
+								ref={(el) => {
+									inputRefs.current[row.original.id] = el;
+								}}
+								value={editedData.description || description}
+								onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
+								className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+								autoFocus
+							/>
+						);
+					}
+
+					return <div className="lowercase">{row.getValue('description')}</div>;
+				},
+				accessorFn: (row) => `${row.description}`,
 			},
 			{
 				accessorKey: 'chapterNumber',
@@ -393,6 +483,7 @@ export default function Lessonn() {
 				enableHiding: false,
 				cell: ({ row }) => {
 					const lesson = row.original;
+					const isEditing = editingRowId === lesson.id;
 
 					return (
 						<DropdownMenu>
@@ -404,29 +495,72 @@ export default function Lessonn() {
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
-								<DropdownMenuItem
-									onClick={() => navigator.clipboard.writeText(lesson.id)}
-									className="hover:cursor-pointer"
-								>
-									Copy Lesson ID
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									className="hover:cursor-pointer text-red-500"
-									onClick={async () => {
-										const success = await onDeleteLesson(row.original.id);
-										if (success) await queryClient.invalidateQueries({ queryKey: ['lesson'] });
-									}}
-								>
-									Delete
-								</DropdownMenuItem>
+								{!isEditing ? (
+									<>
+										<DropdownMenuItem
+											onClick={() => navigator.clipboard.writeText(lesson.id)}
+											className="hover:cursor-pointer"
+										>
+											<CopyIcon className=" h-4 w-4" />
+											Copy Course ID
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											onClick={() => {
+												setEditingRowId(lesson.id);
+												setEditedData(lesson);
+											}}
+											className="hover:cursor-pointer"
+										>
+											<EditIcon className=" h-4 w-4" />
+											Edit
+										</DropdownMenuItem>
+
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="hover:cursor-pointer text-red-500"
+											onClick={async () => {
+												const success = await onDeleteLesson(row.original.id);
+												if (success) await queryClient.invalidateQueries({ queryKey: ['lesson'] });
+											}}
+										>
+											<DeleteIcon className=" h-4 w-4" />
+											Delete
+										</DropdownMenuItem>
+									</>
+								) : (
+									<>
+										<DropdownMenuItem
+											onClick={async () => {
+												const success = await onEditLesson(lesson.id, editedData);
+												if (success) {
+													setEditedData({});
+													setEditingRowId(null);
+												}
+											}}
+											className="hover:cursor-pointer"
+										>
+											<SaveIcon className=" h-4 w-4" />
+											Save
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											onClick={() => {
+												setEditingRowId(null);
+												setEditedData({});
+											}}
+											className="hover:cursor-pointer text-red-500"
+										>
+											<XIcon className=" h-4 w-4" />
+											Cancel
+										</DropdownMenuItem>
+									</>
+								)}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					);
 				},
 			},
 		],
-		[queryClient]
+		[editedData, editingRowId, queryClient]
 	);
 
 	const table = useReactTable({

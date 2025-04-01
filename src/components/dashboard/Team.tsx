@@ -4,7 +4,7 @@ import { ApiResponse } from '@/interfaces';
 import { Team, TeamData } from '@/interfaces/ApiResponses';
 import { AddTeamType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
@@ -47,6 +47,7 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React from 'react';
+import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 
 export default function Teamm() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +56,10 @@ export default function Teamm() {
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [error, setError] = React.useState<string | null>(null);
+	const [editingRowId, setEditingRowId] = useState<string | null>(null);
+	const [editedData, setEditedData] = useState<Partial<Team>>({});
+	const skipPageResetRef = useRef(false);
+	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
 
 	const {
@@ -143,6 +148,49 @@ export default function Teamm() {
 		}
 	};
 
+	const onEditTeam = async (teamId: string, updatedData: Partial<Team>) => {
+		try {
+			const dataToSend = {
+				name: updatedData.name,
+			};
+
+			Object.keys(dataToSend).forEach((key) => {
+				if (dataToSend[key as keyof typeof dataToSend] === undefined) {
+					delete (dataToSend as Record<string, unknown>)[key];
+				}
+			});
+
+			if (Object.keys(dataToSend).length === 0) {
+				toast.warning('No changes to update', { description: 'No fields were modified.' });
+				return false;
+			}
+
+			const { data: responseData, error } = await callApi<ApiResponse<TeamData>>(`/team/update-team`, {
+				teamId,
+				...dataToSend,
+			});
+
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				toast.success('Team Updated', { description: 'Team has been successfully updated.' });
+				queryClient.invalidateQueries({ queryKey: ['team'] });
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Team Update Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
+
+	useEffect(() => {
+		if (editingRowId && inputRefs.current[editingRowId]) {
+			inputRefs.current[editingRowId]?.focus();
+		}
+	}, [editingRowId]);
+
 	const columns: ColumnDef<Team>[] = [
 		{
 			id: 'select',
@@ -174,7 +222,22 @@ export default function Teamm() {
 				);
 			},
 			cell: ({ row }) => {
-				const team = row.original.name;
+				const team = row.original;
+				const isEditing = editingRowId === team.id;
+
+				if (isEditing) {
+					return (
+						<Input
+							ref={(el) => {
+								inputRefs.current[team.id] = el;
+							}}
+							value={editedData.name || team.name}
+							onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
+							className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+							autoFocus
+						/>
+					);
+				}
 
 				return (
 					<div className="flex items-center space-x-2">
@@ -182,7 +245,7 @@ export default function Teamm() {
 							<AvatarImage src="/icons/Team.svg" />
 							<AvatarFallback>TD</AvatarFallback>
 						</Avatar>
-						<span className="lowercase ml-3">{`${team} `}</span>
+						<span className="lowercase ml-3">{`${team.name} `}</span>
 					</div>
 				);
 			},
@@ -199,8 +262,7 @@ export default function Teamm() {
 				);
 			},
 			cell: ({ row }) => {
-				const firstName = row.original.firstName;
-				const lastName = row.original.lastName;
+				const team = row.original;
 
 				return (
 					<div className="flex items-center space-x-2">
@@ -208,7 +270,7 @@ export default function Teamm() {
 							<AvatarImage src="/icons/Frame 7.svg" />
 							<AvatarFallback>TD</AvatarFallback>
 						</Avatar>
-						<span className="lowercase ml-3">{`${firstName} ${lastName} `}</span>
+						<span className="lowercase ml-3">{`${team.firstName} ${team.lastName} `}</span>
 					</div>
 				);
 			},
@@ -233,6 +295,7 @@ export default function Teamm() {
 			enableHiding: false,
 			cell: ({ row }) => {
 				const team = row.original;
+				const isEditing = editingRowId === team.id;
 
 				return (
 					<DropdownMenu>
@@ -244,19 +307,67 @@ export default function Teamm() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							<DropdownMenuItem onClick={() => navigator.clipboard.writeText(team.id)} className="hover:cursor-pointer">
-								Copy Team ID
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								className="hover:cursor-pointer text-red-500"
-								onClick={async () => {
-									const success = await onDeleteTeam(row.original.id);
-									if (success) await queryClient.invalidateQueries({ queryKey: ['team'] });
-								}}
-							>
-								Delete
-							</DropdownMenuItem>
+							{!isEditing ? (
+								<>
+									<DropdownMenuItem
+										onClick={() => navigator.clipboard.writeText(team.id)}
+										className="hover:cursor-pointer"
+									>
+										<CopyIcon className=" h-4 w-4" />
+										Copy Team ID
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => {
+											setEditingRowId(team.id);
+											setEditedData(team);
+											skipPageResetRef.current = true;
+										}}
+										className="hover:cursor-pointer"
+									>
+										<EditIcon className=" h-4 w-4" />
+										Edit
+									</DropdownMenuItem>
+
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										className="hover:cursor-pointer text-red-500"
+										onClick={async () => {
+											const success = await onDeleteTeam(row.original.id);
+											if (success) await queryClient.invalidateQueries({ queryKey: ['team'] });
+										}}
+									>
+										<DeleteIcon className=" h-4 w-4" />
+										Delete
+									</DropdownMenuItem>
+								</>
+							) : (
+								<>
+									<DropdownMenuItem
+										onClick={async () => {
+											const success = await onEditTeam(team.id, editedData);
+											if (success) {
+												setEditedData({});
+												setEditingRowId(null);
+												skipPageResetRef.current = true;
+											}
+										}}
+										className="hover:cursor-pointer"
+									>
+										<SaveIcon className=" h-4 w-4" />
+										Save
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => {
+											setEditingRowId(null);
+											setEditedData({});
+										}}
+										className="hover:cursor-pointer text-red-500"
+									>
+										<XIcon className=" h-4 w-4" />
+										Cancel
+									</DropdownMenuItem>
+								</>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);
@@ -281,6 +392,8 @@ export default function Teamm() {
 			columnVisibility,
 			rowSelection,
 		},
+		autoResetPageIndex: !skipPageResetRef.current,
+		autoResetExpanded: !skipPageResetRef.current,
 	});
 
 	const debouncedFilter = React.useCallback(
