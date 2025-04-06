@@ -24,4 +24,5 @@ export {
 	CopyIcon,
 	DeleteIcon,
 	SaveIcon,
+	QuizIcon,
 } from './svg';

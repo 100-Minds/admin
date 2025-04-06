@@ -13,6 +13,7 @@ import {
 	type AddLessonProps,
 	type AddJourneyProps,
 	type AddTeamProps,
+	type AddQuizProps,
 } from '@/interfaces';
 import { zxcvbn, zxcvbnAsync, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
@@ -59,7 +60,8 @@ type FormType =
 	| 'course'
 	| 'lesson'
 	| 'journey'
-	| 'team';
+	| 'team'
+	| 'quiz';
 
 const signUpSchema: z.ZodType<SignUpProps> = z
 	.object({
@@ -472,6 +474,23 @@ const addTeamSchema: z.ZodType<AddTeamProps> = z.object({
 		.trim(),
 });
 
+const addQuizSchema: z.ZodType<AddQuizProps> = z.object({
+	question: z
+		.string()
+		.min(5, { message: 'Question must be at least 5 characters long' })
+		.max(500, { message: 'Question must be less than 500 characters' })
+		.trim(),
+	optionA: z.string().min(1, { message: 'Option A is required' }).trim(),
+	optionB: z.string().min(1, { message: 'Option B is required' }).trim(),
+	optionC: z.string().trim().nullable(),
+	optionD: z.string().trim().nullable(),
+	isCorrect: z.string().refine((val) => ['optionA', 'optionB', 'optionC', 'optionD'].includes(val), {
+		message: 'Select a valid correct answer',
+	}),
+	chapterId: z.string().uuid({ message: 'Invalid chapter ID' }),
+	courseId: z.string().uuid({ message: 'Invalid course ID' }),
+});
+
 // export const zodValidator = (formType: FormType) => {
 // 	switch (formType) {
 // 		case 'signup':
@@ -520,7 +539,9 @@ export const zodValidator = <T extends FormType>(
 													? AddJourneyProps
 													: T extends 'team'
 														? AddTeamProps
-														: UpdatePasswordsProps
+														: T extends 'quiz'
+															? AddQuizProps
+															: UpdatePasswordsProps
 > => {
 	const schemaMap = {
 		login: loginSchema,
@@ -537,6 +558,7 @@ export const zodValidator = <T extends FormType>(
 		lesson: addLessonSchema,
 		journey: addJourneySchema,
 		team: addTeamSchema,
+		quiz: addQuizSchema,
 	};
 
 	return schemaMap[type] as ZodType<
@@ -566,7 +588,9 @@ export const zodValidator = <T extends FormType>(
 														? AddJourneyProps
 														: T extends 'team'
 															? AddTeamProps
-															: UpdatePasswordsProps
+															: T extends 'quiz'
+																? AddQuizProps
+																: UpdatePasswordsProps
 	>; // TypeScript needs this assertion to match the conditional type
 };
 
@@ -584,3 +608,4 @@ export type AddCourseType = z.infer<typeof addCourseSchema>;
 export type AddLessonType = z.infer<typeof addLessonSchema>;
 export type AddJourneyType = z.infer<typeof addJourneySchema>;
 export type AddTeamType = z.infer<typeof addTeamSchema>;
+export type AddQuizType = z.infer<typeof addQuizSchema>;

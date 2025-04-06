@@ -253,7 +253,7 @@ export default function RolePlays() {
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src={scenarioImage} />
+							<AvatarImage src={scenarioImage} className="object-cover w-full h-full" />
 							<AvatarFallback>RP</AvatarFallback>
 						</Avatar>
 						<span className="lowercase ml-3">{`${scenario}`}</span>

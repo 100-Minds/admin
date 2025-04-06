@@ -79,3 +79,14 @@ export type UpdateProfileProps = {
 	username?: string | null;
 	photo?: File | null;
 };
+
+export type AddQuizProps = {
+	question: string;
+	optionA: string;
+	optionB: string;
+	optionC: string | null;
+	optionD: string | null;
+	isCorrect: string;
+	chapterId: string;
+	courseId: string;
+};

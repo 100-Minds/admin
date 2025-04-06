@@ -19,6 +19,7 @@ import { CameraIcon } from '../common';
 export default function Profile() {
 	const { user } = useSession((state) => state);
 	const [profileImage, setProfileImage] = useState(user && user[0].photo);
+	const [dialogImage, setDialogImage] = useState(user && user[0].photo);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -129,6 +130,7 @@ export default function Profile() {
 				if (photoResponse?.data) {
 					updateUser({ user: photoResponse.data[0] });
 					setProfileImage(photoResponse.data[0].photo ?? profileImage);
+					setDialogImage(photoResponse.data[0].photo ?? profileImage);
 				}
 			}
 
@@ -155,17 +157,15 @@ export default function Profile() {
 	// };
 
 	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		console.log('Event in handleImageChange:', e);
 		const files = e.target.files;
-		console.log('Files:', files);
 
 		if (files && files.length > 0) {
 			const file = files[0];
 			const imageUrl = URL.createObjectURL(file);
-			setProfileImage(imageUrl);
+			setDialogImage(imageUrl);
 			setValue('photo', file, { shouldValidate: true });
 		} else {
-			setProfileImage(user && user[0].photo);
+			setDialogImage(user && user[0].photo);
 			setValue('photo', undefined, { shouldValidate: true });
 		}
 	};
@@ -176,7 +176,7 @@ export default function Profile() {
 				<DialogTrigger className="w-full" onClick={() => setIsDialogOpen(true)}>
 					<div className="flex items-center gap-2 p-2 rounded-xl bg-white cursor-pointer">
 						<Avatar>
-							<AvatarImage src={profileImage || ''} />
+							<AvatarImage src={profileImage || ''} className="object-cover w-full h-full" />
 							<AvatarFallback>
 								<Image src="/icons/Frame 7.svg" alt="Fallback Icon" width={100} height={100} />
 							</AvatarFallback>
@@ -197,7 +197,7 @@ export default function Profile() {
 						<div className="relative flex justify-center mt-4">
 							<label htmlFor="profileUpload" className="relative cursor-pointer">
 								<Avatar className="w-24 h-24 border">
-									<AvatarImage src={profileImage || ''} />
+									<AvatarImage src={dialogImage || ''} className="object-cover w-full h-full"/>
 									<AvatarFallback>
 										<Image src="/icons/Frame 7.svg" alt="Fallback Icon" width={100} height={100} />
 									</AvatarFallback>

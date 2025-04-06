@@ -14,6 +14,7 @@ import {
 	OpenBookIcon,
 	SettingsIcon,
 	XIcon,
+	QuizIcon,
 } from '../common';
 import Image from 'next/image';
 
@@ -23,6 +24,7 @@ const menuItems = [
 	{ name: 'Power Skills', icon: ThunderIcon, path: '/power-skills' },
 	{ name: 'Role Play', icon: RolePlayIcon, path: '/role-play' },
 	{ name: 'Courses', icon: BookIcon, path: '/courses' },
+	{ name: 'Quiz', icon: QuizIcon, path: '/quiz' },
 	{ name: 'Journey', icon: OpenBookIcon, path: '/journey' },
 	{ name: 'Teams', icon: UsersIcon, path: '/team' },
 	{ name: 'Settings', icon: SettingsIcon, path: '/settings' },

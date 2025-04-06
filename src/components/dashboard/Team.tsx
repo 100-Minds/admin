@@ -96,7 +96,7 @@ export default function Teamm() {
 		if (queryError) {
 			const errorMessage = queryError.message || 'An unexpected error occurred while fetching teams.';
 			setError(errorMessage);
-			toast.error('Failed to Teams', {
+			toast.error('Failed to Fetch Teams', {
 				description: errorMessage,
 			});
 		}

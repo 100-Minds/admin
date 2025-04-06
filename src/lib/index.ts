@@ -14,6 +14,7 @@ export {
 	type AddLessonType,
 	type AddJourneyType,
 	type AddTeamType,
+	type AddQuizType,
 } from './validators/validateWithZod';
 
 export { callApi } from './helpers/callApi';

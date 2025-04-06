@@ -391,7 +391,7 @@ export default function Coursess() {
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src={image} />
+							<AvatarImage src={image} className="object-cover w-full h-full"/>
 							<AvatarFallback>{'/icons/Course.svg'}</AvatarFallback>
 						</Avatar>
 						<span className="lowercase ml-3">{`${name}`}</span>
@@ -476,22 +476,6 @@ export default function Coursess() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							{/* <DropdownMenuItem
-								onClick={() => navigator.clipboard.writeText(courses.id)}
-								className="hover:cursor-pointer"
-							>
-								Copy Course ID
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								className="hover:cursor-pointer text-red-500"
-								onClick={async () => {
-									const success = await onDeleteCourse(row.original.id);
-									if (success) await queryClient.invalidateQueries({ queryKey: ['course'] });
-								}}
-							>
-								Delete
-							</DropdownMenuItem> */}
 
 							{!isEditing ? (
 								<>

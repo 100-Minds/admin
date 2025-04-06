@@ -217,7 +217,7 @@ export function DataTable() {
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src={photo} />
+							<AvatarImage src={photo} className="object-cover w-full h-full"/>
 							<AvatarFallback>
 								<Image src="/icons/Frame 7.svg" alt="Fallback Icon" width={100} height={100} />
 							</AvatarFallback>
