@@ -77,7 +77,18 @@ export type UpdateProfileProps = {
 	lastName?: string | null;
 	email?: string | null;
 	username?: string | null;
+	bio?: string | null;
+	careerGoals?: string | null;
+	opportunities?: string | null;
+	strengths?: string | null;
 	photo?: File | null;
+};
+
+export type UpdateOrganizationProps = {
+	organizationLogo?: File | null;
+	organizationName?: string;
+	organizationWebsite?: string;
+	organizationDescription?: string;
 };
 
 export type AddQuizProps = {

@@ -6,6 +6,16 @@ export type User = {
 	username: string;
 	photo: string;
 	role: string;
+	accountType: string;
+	organizationLogo: string;
+	organizationName: string;
+	organizationWebsite: string;
+	organizationDescription: string;
+	bio: string;
+	careerGoals: string;
+	opportunities: string;
+	strengths: string;
+	assessment: string;
 	isSuspended: boolean;
 	isDeleted: boolean;
 	created_at: string;

@@ -121,7 +121,17 @@ const OtpVerification = ({ loginData, onSuccess }: OtpVerificationProps) => {
 							render={({ field }) => (
 								<FormItem>
 									<FormControl>
-										<InputOTP maxLength={6} {...field}>
+										<InputOTP
+											maxLength={6}
+											{...field}
+											onPaste={(e) => {
+												e.preventDefault();
+												const pastedData = e.clipboardData.getData('text').slice(0, 6);
+												if (/^\d+$/.test(pastedData)) {
+													field.onChange(pastedData);
+												}
+											}}
+										>
 											<InputOTPGroup className="flex justify-center gap-2 !my-4">
 												{[...Array(6)].map((_, index) => (
 													<InputOTPSlot

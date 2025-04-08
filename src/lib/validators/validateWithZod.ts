@@ -14,6 +14,7 @@ import {
 	type AddJourneyProps,
 	type AddTeamProps,
 	type AddQuizProps,
+	type UpdateOrganizationProps,
 } from '@/interfaces';
 import { zxcvbn, zxcvbnAsync, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
@@ -61,7 +62,8 @@ type FormType =
 	| 'lesson'
 	| 'journey'
 	| 'team'
-	| 'quiz';
+	| 'quiz'
+	| 'updateOrganization';
 
 const signUpSchema: z.ZodType<SignUpProps> = z
 	.object({
@@ -265,7 +267,109 @@ const updateProfileSchema: z.ZodType<UpdateProfileProps> = z
 			})
 			.optional()
 			.nullable(),
+		bio: z
+			.string()
+			.min(7, { message: 'Bio must be at least 7 characters long' })
+			.max(250, { message: 'Bio must be less than 250 characters' })
+			.transform((value) => {
+				return value.trim();
+				// return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.nullish()
+			.or(z.literal('')),
+		careerGoals: z
+			.string()
+			.min(7, { message: 'Career Goals must be at least 7 characters long' })
+			.max(250, { message: 'Career Goals must be less than 250 characters' })
+			.transform((value) => {
+				return value.trim();
+				// return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.nullish()
+			.or(z.literal('')),
+		opportunities: z
+			.string()
+			.min(7, { message: 'Opportunities must be at least 7 characters long' })
+			.max(250, { message: 'Opportunities must be less than 250 characters' })
+			.transform((value) => {
+				return value.trim();
+				// return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.nullish()
+			.or(z.literal('')),
 		photo: z
+			.any() // Allow File or FileList
+			.optional()
+			.nullable()
+			.refine(
+				(file) => {
+					// If no file is provided (undefined or null), it's valid (optional)
+					if (!file) return true;
+
+					// If file is a FileList (from input), check the first file
+					if (file instanceof FileList && file.length === 0) return true; // Empty FileList is valid
+
+					// If file is a single File or the first item in FileList
+					const targetFile = file instanceof FileList ? file[0] : file;
+
+					// Check if it's a File (not FileList or other type)
+					if (!(targetFile instanceof File)) {
+						return false;
+					}
+
+					// Validate file type
+					const isValidType = ACCEPTED_IMAGE_TYPES.includes(targetFile.type);
+					if (!isValidType) {
+						return false;
+					}
+
+					// Validate file size
+					const isValidSize = targetFile.size <= MAX_FILE_SIZE;
+					if (!isValidSize) {
+						return false;
+					}
+
+					return true;
+				},
+				{
+					message:
+						'Invalid file. Choose an image (JPEG, PNG, GIF, WebP, BMP, TIFF, or SVG) with a maximum size of 8MB.',
+				}
+			),
+	})
+	.partial();
+
+const updateOrganizationSchema: z.ZodType<UpdateOrganizationProps> = z
+	.object({
+		organizationName: z
+			.string()
+			.min(3, { message: 'Organization Name must be at least 3 characters long' })
+			.max(50, { message: 'Organization Name must be less than 50 characters' })
+			.transform((value) => {
+				return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.optional()
+			.or(z.literal('')),
+		organizationWebsite: z
+			.string()
+			.min(7, { message: 'Organization Website must be at least 7 characters long' })
+			.max(50, { message: 'Organization Website must be less than 50 characters' })
+			.transform((value) => {
+				return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.optional()
+			.or(z.literal('')),
+		organizationDescription: z
+			.string()
+			.min(7, { message: 'Description must be at least 7 characters long' })
+			.max(250, { message: 'Description must be less than 250 characters' })
+			.transform((value) => {
+				return value.trim();
+				// return (value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()).trim();
+			})
+			.optional()
+			.or(z.literal('')),
+		organizationLogo: z
 			.any() // Allow File or FileList
 			.optional()
 			.nullable()
@@ -541,7 +645,9 @@ export const zodValidator = <T extends FormType>(
 														? AddTeamProps
 														: T extends 'quiz'
 															? AddQuizProps
-															: UpdatePasswordsProps
+															: T extends 'updateOrganization'
+																? UpdateOrganizationProps
+																: UpdatePasswordsProps
 > => {
 	const schemaMap = {
 		login: loginSchema,
@@ -559,6 +665,7 @@ export const zodValidator = <T extends FormType>(
 		journey: addJourneySchema,
 		team: addTeamSchema,
 		quiz: addQuizSchema,
+		updateOrganization: updateOrganizationSchema,
 	};
 
 	return schemaMap[type] as ZodType<
@@ -590,7 +697,9 @@ export const zodValidator = <T extends FormType>(
 															? AddTeamProps
 															: T extends 'quiz'
 																? AddQuizProps
-																: UpdatePasswordsProps
+																: T extends 'updateOrganization'
+																	? UpdateOrganizationProps
+																	: UpdatePasswordsProps
 	>; // TypeScript needs this assertion to match the conditional type
 };
 
@@ -609,3 +718,4 @@ export type AddLessonType = z.infer<typeof addLessonSchema>;
 export type AddJourneyType = z.infer<typeof addJourneySchema>;
 export type AddTeamType = z.infer<typeof addTeamSchema>;
 export type AddQuizType = z.infer<typeof addQuizSchema>;
+export type UpdateOrganizationType = z.infer<typeof updateOrganizationSchema>;

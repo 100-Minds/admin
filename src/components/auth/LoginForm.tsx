@@ -14,12 +14,14 @@ import { toast } from 'sonner';
 import AuthLayout from '@/app/auth/layout';
 import { FormErrorMessage } from '../common';
 import { useEffect, useState } from 'react';
+import { EyeOff, EyeClosed } from 'lucide-react';
 import OtpVerification from './OtpVerification';
 
 const Login = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [loginData, setLoginData] = useState<LoginType | null>(null);
 	const [showOtpScreen, setShowOtpScreen] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
 	const { user } = useSession((state) => state);
 
@@ -83,12 +85,7 @@ const Login = () => {
 			{showOtpScreen && loginData ? (
 				<OtpVerification loginData={loginData} onSuccess={handleOtpSuccess} />
 			) : (
-				<AuthLayout
-					heading="Welcome back!"
-					greeting="Sign in to continue"
-					withHeader={true}
-					hasSuccess={false}
-				>
+				<AuthLayout heading="Welcome back!" greeting="Sign in to continue" withHeader={true} hasSuccess={false}>
 					<div className="w-full max-w-md space-y-6">
 						{/* "Sign in" text */}
 						<div className="flex flex-col items-center space-y-2">
@@ -116,16 +113,25 @@ const Login = () => {
 								<label htmlFor="password" className="text-sm font-medium text-gray-700">
 									Password <span className="text-red-500">*</span>
 								</label>
-								<Input
-									{...register('password')}
-									type="password"
-									id="password"
-									aria-label="Password"
-									placeholder="Password"
-									className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
-										errors.password && 'border-red-500 ring-2 ring-red-500'
-									}`}
-								/>
+								<div className="relative">
+									<Input
+										{...register('password')}
+										type={showPassword ? 'text' : 'password'}
+										id="password"
+										aria-label="Password"
+										placeholder="Password"
+										className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+											errors.password && 'border-red-500 ring-2 ring-red-500'
+										}`}
+									/>
+									<button
+										type="button"
+										onClick={() => setShowPassword(!showPassword)}
+										className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:cursor-pointer"
+									>
+										{showPassword ? <EyeOff className="h-4 w-4" /> : <EyeClosed className="h-4 w-4" />}
+									</button>
+								</div>
 								{errors.password && <FormErrorMessage error={errors.password} errorMsg={errors.password.message} />}
 							</div>
 							<Button

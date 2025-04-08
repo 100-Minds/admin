@@ -10,11 +10,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useDeferredValue, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { EyeOff, EyeClosed } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ResetPassword = () => {
 	const router = useRouter();
 	const [token, setToken] = useState<string | null>(null);
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 	useEffect(() => {
 		const queryToken = new URLSearchParams(window.location.search).get('token');
 		setToken(queryToken);
@@ -88,14 +92,23 @@ const ResetPassword = () => {
 							<label htmlFor="password" className="text-sm font-medium text-gray-700">
 								New Password <span className="text-red-500">*</span>
 							</label>
-							<Input
-								{...register('password')}
-								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
-									errors.password && 'border-red-500 ring-2 ring-red-500'
-								}`}
-								placeholder="Create a new password"
-								type="password"
-							/>
+							<div className="relative">
+								<Input
+									{...register('password')}
+									className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+										errors.password && 'border-red-500 ring-2 ring-red-500'
+									}`}
+									placeholder="Create a new password"
+									type={showPassword ? 'text' : 'password'}
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:cursor-pointer"
+								>
+									{showPassword ? <EyeOff className="h-4 w-4" /> : <EyeClosed className="h-4 w-4" />}
+								</button>
+							</div>
 							{password.length > 0 && <FormErrorMessage isForPasswordStrength result={passwordStrength} />}
 							{errors.password?.message && <FormErrorMessage error={errors} errorMsg={errors.password.message} />}
 						</div>
@@ -104,14 +117,23 @@ const ResetPassword = () => {
 							<label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
 								Confirm Password <span className="text-red-500">*</span>
 							</label>
-							<Input
-								{...register('confirmPassword')}
-								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
-									errors.confirmPassword && 'ring-2 border-red-500 ring-red-500'
-								}`}
-								placeholder="Re-enter password"
-								type="password"
-							/>
+							<div className="relative">
+								<Input
+									{...register('confirmPassword')}
+									className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+										errors.confirmPassword && 'ring-2 border-red-500 ring-red-500'
+									}`}
+									placeholder="Re-enter password"
+									type={showConfirmPassword ? 'text' : 'password'}
+								/>
+								<button
+									type="button"
+									onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+									className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:cursor-pointer"
+								>
+									{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <EyeClosed className="h-4 w-4" />}
+								</button>
+							</div>
 							{errors.confirmPassword?.message && (
 								<FormErrorMessage error={errors} errorMsg={errors.confirmPassword.message} />
 							)}

@@ -56,7 +56,7 @@ export default function Sidebar() {
 									)}
 								>
 									<div className="flex items-center gap-3 text-[14px]">
-										{item.icon && <item.icon className="text-black w-5 h-5" />}
+										{item.icon && <item.icon className="text-[#509999] w-5 h-5" />}
 										{item.name}
 									</div>
 
