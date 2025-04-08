@@ -125,7 +125,6 @@ export default function UpdateProfile() {
 				}
 
 				if (responseData?.data) {
-					console.log(responseData.data[0]);
 					updateUser({ user: responseData.data[0] });
 				}
 			}
@@ -133,7 +132,6 @@ export default function UpdateProfile() {
 			if (data.photo instanceof File) {
 				const photoFormData = new FormData();
 				photoFormData.append('photo', data.photo);
-				console.log(data.photo);
 
 				const { data: photoResponse, error: photoError } = await callApi<ApiResponse<SessionData>>(
 					'/user/upload-profile-picture',
