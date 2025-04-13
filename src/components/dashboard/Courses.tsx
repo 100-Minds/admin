@@ -1,23 +1,25 @@
 'use client';
 
 import { ApiResponse } from '@/interfaces';
-import { Course, CourseData, Module, PowerSkill, RolePlay } from '@/interfaces/ApiResponses';
-import { AddCourseType, callApi, zodValidator } from '@/lib';
+import { Course, CourseData, Module, ModuleData } from '@/interfaces/ApiResponses';
+import { AddCourseType, AddModuleType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { FormErrorMessage } from '../common';
+import { FormErrorMessage, OpenBookIcon } from '../common';
 import { Input } from '../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '../ui/checkbox';
 import { format } from 'date-fns';
 import debounce from 'lodash/debounce';
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, BookIcon, ChevronDown, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -48,35 +50,47 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React from 'react';
-import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
+import { useRouter } from 'next/navigation';
+import { EditIcon, DeleteIcon } from '../common';
 
 export default function Coursess() {
 	const [isLoading, setIsLoading] = useState(false);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-	const [rowSelection, setRowSelection] = React.useState({});
-	const [error, setError] = React.useState<string | null>(null);
-	const [selectedSkills, setSelectedSkills] = useState<{ id: string; name: string }[]>([]);
-	const [selectKey, setSelectKey] = useState(0);
+	const [sorting, setSorting] = useState<SortingState>([]);
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+	const [rowSelection, setRowSelection] = useState({});
+	const [error, setError] = useState<string | null>(null);
 	const [fileName, setFileName] = useState<string | null>(null);
-	const [editingRowId, setEditingRowId] = useState<string | null>(null);
-	const [editedData, setEditedData] = useState<Partial<Course>>({});
-	const skipPageResetRef = useRef(false);
-	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+	const [searchTerm, setSearchTerm] = useState<string>('');
+	const [open, setOpen] = useState<boolean>(false);
+	const router = useRouter();
 	const queryClient = useQueryClient();
+
+	const {
+		//register: registerModule,
+		handleSubmit: handleSubmitModule,
+		reset: resetModule,
+		setValue: setModuleValue,
+		formState: { isSubmitting: submittingModule },
+	} = useForm<AddModuleType>({
+		resolver: zodResolver(zodValidator('module')!),
+		mode: 'onChange',
+		reValidateMode: 'onChange',
+	});
 
 	const {
 		register,
 		handleSubmit,
 		reset,
 		setValue,
+		watch,
 		formState: { errors, isSubmitting },
 	} = useForm<AddCourseType>({
 		resolver: zodResolver(zodValidator('course')!),
 		mode: 'onChange',
 		reValidateMode: 'onChange',
 	});
+	const moduleId = watch('moduleId');
 
 	const {
 		data: courses,
@@ -85,7 +99,7 @@ export default function Coursess() {
 	} = useQuery<Course[], Error>({
 		queryKey: ['course'],
 		queryFn: async () => {
-			const { data: responseData, error } = await callApi<ApiResponse<Course[]>>('/course/get-courses');
+			const { data: responseData, error } = await callApi<ApiResponse<Course[]>>('/course/get-admin-courses');
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching courses.');
 			}
@@ -113,9 +127,9 @@ export default function Coursess() {
 
 			const formData = new FormData();
 			formData.append('name', data.name);
-			formData.append('scenario', data.scenario);
+			//formData.append('scenario', data.scenario);
 			formData.append('moduleId', data.moduleId);
-			formData.append('skills', JSON.stringify(data.skills));
+			//formData.append('skills', JSON.stringify(data.skills));
 			if (data.courseImage instanceof File) {
 				formData.append('courseImage', data.courseImage);
 			}
@@ -138,42 +152,43 @@ export default function Coursess() {
 			setFileName(null);
 		} finally {
 			reset();
-			setTimeout(() => {
-				setValue('moduleId', '');
-				setValue('scenario', '');
-				setValue('skills', []);
-				setSelectedSkills([]);
-				setSelectKey((prev) => prev + 1);
-			}, 0);
+			setValue('moduleId', '');
+			//setValue('scenario', []);
+			//setValue('skills', []);
+			//setSelectedSkills([]);
 			setIsLoading(false);
 		}
 	};
 
-	const onDeleteCourse = async (courseId: string) => {
+	const onSubmitModule: SubmitHandler<AddModuleType> = async (data: AddModuleType) => {
 		try {
-			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/course/delete-course`, {
-				courseId,
+			setIsLoading(true);
+			const { data: responseData, error } = await callApi<ApiResponse<ModuleData>>('/course/create-module', {
+				name: data.name,
 			});
 
-			if (error) throw new Error(error.message);
-			if (responseData?.status === 'success') {
-				toast.success('Course Deleted', { description: 'The course has been successfully removed.' });
-				return true;
+			if (error) {
+				throw new Error(error.message);
 			}
-			return false;
+
+			if (responseData?.status === 'success') {
+				toast.success('Course Module Created', { description: 'The module has been added successfully.' });
+				queryClient.invalidateQueries({ queryKey: ['module'] });
+			}
 		} catch (err) {
-			toast.error('Course Deletion Failed', {
-				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			toast.error('Module Creation Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.',
 			});
-			return false;
+		} finally {
+			setIsLoading(false);
+			resetModule();
 		}
 	};
 
 	const onEditCourse = async (courseId: string, updatedData: Partial<Course>) => {
 		try {
 			const dataToSend = {
-				name: updatedData.name,
-				scenario: updatedData.scenarioName,
+				status: updatedData.status,
 			};
 
 			Object.keys(dataToSend).forEach((key) => {
@@ -207,11 +222,25 @@ export default function Coursess() {
 		}
 	};
 
-	useEffect(() => {
-		if (editingRowId && inputRefs.current[editingRowId]) {
-			inputRefs.current[editingRowId]?.focus();
+	const onDeleteCourse = async (courseId: string) => {
+		try {
+			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/course/delete-course`, {
+				courseId,
+			});
+
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				toast.success('Course Deleted', { description: 'The course has been successfully removed.' });
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Course Deletion Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
 		}
-	}, [editingRowId]);
+	};
 
 	const {
 		data: modules,
@@ -239,92 +268,6 @@ export default function Coursess() {
 			});
 		}
 	}, [moduleQueryError]);
-
-	const {
-		data: scenario,
-		isLoading: scenarioLoading,
-		error: scenarioQueryError,
-	} = useQuery<RolePlay[], Error>({
-		queryKey: ['rolePlay'],
-		queryFn: async () => {
-			const { data: responseData, error } = await callApi<ApiResponse<RolePlay[]>>('/scenario/all');
-			if (error) {
-				throw new Error(error.message || 'Something went wrong while fetching role plays.');
-			}
-			if (!responseData?.data) {
-				throw new Error('No role play data returned');
-			}
-			return responseData.data;
-		},
-	});
-
-	useEffect(() => {
-		if (scenarioQueryError) {
-			const errorMessage = scenarioQueryError.message || 'An unexpected error occurred while fetching role plays.';
-			toast.error('Failed to fetch modules', {
-				description: errorMessage,
-			});
-		}
-	}, [scenarioQueryError]);
-
-	const {
-		data: skills,
-		isLoading: skillsLoading,
-		error: skillsQueryError,
-	} = useQuery<PowerSkill[], Error>({
-		queryKey: ['skills'],
-		queryFn: async () => {
-			const { data: responseData, error } = await callApi<ApiResponse<PowerSkill[]>>('/skill/all');
-			if (error) {
-				throw new Error(error.message || 'Something went wrong while fetching skills.');
-			}
-			if (!responseData?.data) {
-				throw new Error('No skill data returned');
-			}
-			return responseData.data;
-		},
-	});
-
-	useEffect(() => {
-		if (skillsQueryError) {
-			const errorMessage = skillsQueryError.message || 'An unexpected error occurred while fetching skills.';
-			toast.error('Failed to fetch skills', {
-				description: errorMessage,
-			});
-		}
-	}, [skillsQueryError]);
-
-	const handleSkillChange = (skillId: string) => {
-		setSelectedSkills((prev) => {
-			const skill = (skills ?? []).find((s) => s.id === skillId);
-			if (!skill) return prev;
-
-			const exists = prev.some((s) => s.id === skillId);
-			const updatedSkills = exists
-				? prev.filter((s) => s.id !== skillId)
-				: [...prev, { id: skill.id, name: skill.powerskill }];
-
-			setValue(
-				'skills',
-				updatedSkills.map((s) => s.id),
-				{ shouldValidate: true }
-			);
-			return updatedSkills;
-		});
-	};
-
-	const handleRemoveSkill = (skillId: string) => {
-		setSelectedSkills((prev) => {
-			const updatedSkills = prev.filter((skill) => skill.id !== skillId);
-
-			setValue(
-				'skills',
-				updatedSkills.map((s) => s.id),
-				{ shouldValidate: true }
-			);
-			return updatedSkills;
-		});
-	};
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files.length > 0) {
@@ -372,26 +315,11 @@ export default function Coursess() {
 			cell: ({ row }) => {
 				const name = row.original.name;
 				const image = row.original.courseImage;
-				const isEditing = editingRowId === row.original.id;
-
-				if (isEditing) {
-					return (
-						<Input
-							ref={(el) => {
-								inputRefs.current[row.original.id] = el;
-							}}
-							value={editedData.name || name}
-							onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
-							className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-							autoFocus
-						/>
-					);
-				}
 
 				return (
 					<div className="flex items-center space-x-2">
 						<Avatar>
-							<AvatarImage src={image} className="object-cover w-full h-full"/>
+							<AvatarImage src={image} className="object-cover w-full h-full" />
 							<AvatarFallback>{'/icons/Course.svg'}</AvatarFallback>
 						</Avatar>
 						<span className="lowercase ml-3">{`${name}`}</span>
@@ -411,39 +339,9 @@ export default function Coursess() {
 			cell: ({ row }) => <div className="lowercase">{row.getValue('moduleName')}</div>,
 		},
 		{
-			accessorKey: 'scenarioName',
-			header: 'Scenario',
-			cell: ({ row }) => {
-				const scenarios = row.original;
-				const isEditing = editingRowId === scenarios.id;
-
-				if (isEditing) {
-					const currentScenario = scenarios.scenarioName || '';
-					return (
-						<Select
-							value={editedData.scenarioName || currentScenario}
-							onValueChange={(value) => setEditedData({ ...editedData, scenarioName: value })}
-							disabled={scenarioLoading}
-						>
-							<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-								<SelectValue placeholder={scenarioLoading ? 'Loading Scenarios...' : 'Choose a role play scenario'} />
-							</SelectTrigger>
-							<SelectContent
-								position="popper"
-								className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-							>
-								{scenario?.map((scene) => (
-									<SelectItem key={scene.id} value={scene.scenario} className="w-full">
-										{scene.scenario}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					);
-				}
-
-				return <div className="lowercase">{row.getValue('scenarioName')}</div>;
-			},
+			accessorKey: 'status',
+			header: 'Status',
+			cell: ({ row }) => <div className="lowercase">{row.getValue('status')}</div>,
 		},
 		{
 			accessorKey: 'created_at',
@@ -464,7 +362,6 @@ export default function Coursess() {
 			enableHiding: false,
 			cell: ({ row }) => {
 				const courses = row.original;
-				const isEditing = editingRowId === courses.id;
 
 				return (
 					<DropdownMenu>
@@ -476,68 +373,55 @@ export default function Coursess() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
+							{/* <DropdownMenuItem
+								onClick={() => navigator.clipboard.writeText(courses.id)}
+								className="hover:cursor-pointer"
+							>
+								<CopyIcon className=" h-4 w-4" />
+								Copy Course ID
+							</DropdownMenuItem> */}
+							<DropdownMenuItem
+								className="hover:cursor-pointer"
+								onClick={async () => {
+									await onEditCourse(courses.id, {
+										status: row.original.status === 'draft' ? 'published' : 'draft',
+									});
+									//if (success) await queryClient.invalidateQueries({ queryKey: ['course'] });
+								}}
+							>
+								<BookIcon className="h-4 w-4" />
+								{row.original.status === 'published' ? 'Draft Course' : 'Publish Course'}
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => {
+									router.push(`/courses/${courses.id}`);
+								}}
+								className="hover:cursor-pointer"
+							>
+								<EditIcon className=" h-4 w-4" />
+								Edit Course
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => {
+									router.push(`/courses/${courses.id}?action=addLesson`);
+								}}
+								className="hover:cursor-pointer"
+							>
+								<OpenBookIcon className="h-4 w-4" />
+								Add Lesson
+							</DropdownMenuItem>
 
-							{!isEditing ? (
-								<>
-									<DropdownMenuItem
-										onClick={() => navigator.clipboard.writeText(courses.id)}
-										className="hover:cursor-pointer"
-									>
-										<CopyIcon className=" h-4 w-4" />
-										Copy Course ID
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => {
-											setEditingRowId(courses.id);
-											setEditedData(courses);
-											skipPageResetRef.current = true;
-										}}
-										className="hover:cursor-pointer"
-									>
-										<EditIcon className=" h-4 w-4" />
-										Edit
-									</DropdownMenuItem>
-
-									<DropdownMenuSeparator />
-									<DropdownMenuItem
-										className="hover:cursor-pointer text-red-500"
-										onClick={async () => {
-											const success = await onDeleteCourse(row.original.id);
-											if (success) await queryClient.invalidateQueries({ queryKey: ['course'] });
-										}}
-									>
-										<DeleteIcon className=" h-4 w-4" />
-										Delete
-									</DropdownMenuItem>
-								</>
-							) : (
-								<>
-									<DropdownMenuItem
-										onClick={async () => {
-											const success = await onEditCourse(courses.id, editedData);
-											if (success) {
-												setEditedData({});
-												setEditingRowId(null);
-												skipPageResetRef.current = true;
-											}
-										}}
-										className="hover:cursor-pointer"
-									>
-										<SaveIcon className=" h-4 w-4" />
-										Save
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => {
-											setEditingRowId(null);
-											setEditedData({});
-										}}
-										className="hover:cursor-pointer text-red-500"
-									>
-										<XIcon className=" h-4 w-4" />
-										Cancel
-									</DropdownMenuItem>
-								</>
-							)}
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="hover:cursor-pointer text-red-500"
+								onClick={async () => {
+									const success = await onDeleteCourse(row.original.id);
+									if (success) await queryClient.invalidateQueries({ queryKey: ['course'] });
+								}}
+							>
+								<DeleteIcon className=" h-4 w-4" />
+								Delete
+							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);
@@ -562,8 +446,6 @@ export default function Coursess() {
 			columnVisibility,
 			rowSelection,
 		},
-		autoResetPageIndex: !skipPageResetRef.current,
-		autoResetExpanded: !skipPageResetRef.current,
 	});
 
 	const debouncedFilter = React.useCallback(
@@ -603,63 +485,79 @@ export default function Coursess() {
 						</div>
 
 						<div className="mt-4">
-							<label className="text-sm font-medium text-gray-700">
+							<label className="text-sm font-medium text-gray-700 bg-yellow">
 								Select Module <span className="text-red-500">*</span>
 							</label>
-							<Select
-								onValueChange={(value) => {
-									setValue('moduleId', value, { shouldValidate: true });
-								}}
-								disabled={moduleLoading}
-								key={selectKey}
-							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue placeholder={moduleLoading ? 'Loading modules...' : 'Choose a module'} />
-								</SelectTrigger>
 
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-								>
-									{modules?.map((module) => (
-										<SelectItem key={module.id} value={module.id} className="w-full">
-											{module.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+							<Popover open={open} onOpenChange={setOpen}>
+								<PopoverTrigger asChild className="bg-[#F8F8F8]">
+									<Button
+										variant="outline"
+										role="combobox"
+										className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer justify-between text-gray-500"
+										disabled={moduleLoading}
+									>
+										{moduleId
+											? (modules?.find((module) => module.id === moduleId)?.name ?? 'Select module')
+											: moduleLoading
+												? 'Loading modules...'
+												: 'Choose a module'}
+										<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="w-full p-0" align="start">
+									<Command>
+										<CommandInput
+											placeholder="Find or create a new module"
+											onValueChange={(value) => setSearchTerm(value)}
+										/>
+
+										<CommandList>
+											<CommandEmpty className="px-4 py-3">
+												{searchTerm && (
+													<Button
+														variant="ghost"
+														className="hover:underline hover:cursor-pointer p-0 h-auto"
+														disabled={submittingModule || isLoading}
+														onClick={() => {
+															setModuleValue('name', searchTerm, { shouldValidate: true });
+															handleSubmitModule(async (data) => {
+																await onSubmitModule(data);
+																setSearchTerm('');
+																setOpen(false);
+															})();
+														}}
+													>
+														{submittingModule || isLoading ? 'Creating...' : `+ Create new module: ${searchTerm}`}
+													</Button>
+												)}
+											</CommandEmpty>
+											<CommandGroup>
+												{modules
+													?.filter((module) => module.name.toLowerCase().includes(searchTerm.toLowerCase()))
+													.map((module) => (
+														<CommandItem
+															key={module.id}
+															value={module.name}
+															onSelect={() => {
+																setValue('moduleId', module.id, { shouldValidate: true });
+																setSearchTerm('');
+																setOpen(false);
+															}}
+															className="w-full"
+														>
+															<Check
+																className={`mr-2 h-4 w-4 ${moduleId === module.id ? 'opacity-100' : 'opacity-0'}`}
+															/>
+															{module.name}
+														</CommandItem>
+													))}
+											</CommandGroup>
+										</CommandList>
+									</Command>
+								</PopoverContent>
+							</Popover>
 							{errors.moduleId && <FormErrorMessage error={errors.moduleId} errorMsg={errors.moduleId.message} />}
-						</div>
-
-						<div className="mt-4">
-							<label className="text-sm font-medium text-gray-700">
-								Select scenario <span className="text-red-500">*</span>
-							</label>
-							<Select
-								onValueChange={(value) => {
-									setValue('scenario', value, { shouldValidate: true });
-								}}
-								disabled={scenarioLoading}
-								key={selectKey}
-							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue
-										placeholder={scenarioLoading ? 'Loading role play scenarios...' : 'Choose a role play scenario'}
-									/>
-								</SelectTrigger>
-
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-								>
-									{scenario?.map((scenario) => (
-										<SelectItem key={scenario.id} value={scenario.scenario} className="w-full">
-											{scenario.scenario}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{errors.scenario && <FormErrorMessage error={errors.scenario} errorMsg={errors.scenario.message} />}
 						</div>
 
 						<div className="mt-4">
@@ -695,48 +593,6 @@ export default function Coursess() {
 							)}
 							{errors.courseImage && (
 								<FormErrorMessage error={errors.courseImage} errorMsg={errors.courseImage.message} />
-							)}
-						</div>
-
-						<div className="relative">
-							<label className="text-sm font-medium text-gray-700">
-								Select Skills <span className="text-red-500">*</span>
-							</label>
-							<Select onValueChange={handleSkillChange} key={selectKey}>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue placeholder={skillsLoading ? 'Loading power skill...' : 'Choose skills'} />
-								</SelectTrigger>
-
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-								>
-									{skills?.map((skill) => (
-										<SelectItem key={skill.id} value={skill.id} className="w-full">
-											{skill.powerskill}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-
-							{selectedSkills.length > 0 && (
-								<div className="mt-2 flex flex-wrap gap-2">
-									{selectedSkills.map((skill) => (
-										<span key={skill.id} className="bg-gray-200 text-xs p-1 rounded">
-											{skill.name}
-											<span
-												onClick={() => handleRemoveSkill(skill.id)}
-												className="text-red-500 cursor-pointer text-[9px]"
-											>
-												❌
-											</span>
-										</span>
-									))}
-								</div>
-							)}
-
-							{selectedSkills.length === 0 && (
-								<p className="text-red-500 text-xs mt-2">At least one skill is required</p>
 							)}
 						</div>
 
@@ -905,7 +761,6 @@ export default function Coursess() {
 											return (
 												<PaginationItem key={index} className="mb-auto text-xl">
 													...
-													{/* <PaginationEllipsis className='mb-0'/> */}
 												</PaginationItem>
 											);
 										}

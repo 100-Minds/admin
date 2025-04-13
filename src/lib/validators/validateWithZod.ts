@@ -526,16 +526,26 @@ const addCourseSchema: z.ZodType<AddCourseProps> = z.object({
 	courseImage: z.instanceof(File, { message: 'Course image must be a valid file' }),
 	moduleId: z.string().uuid({ message: 'Invalid module ID format' }),
 	scenario: z
-		.string()
-		.min(5, { message: 'Scenario must be at least 5 characters long' })
-		.max(100, { message: 'Scenario must be less than 100 characters' })
-		.trim(),
+		.array(z.string())
+		.min(1, { message: 'At least one scenario is required' })
+		.max(100, { message: 'Scenarios must not exceed 100 items' })
+		.optional()
+		.nullable(),
 	skills: z
 		.array(z.string())
 		.min(1, { message: 'At least one skill is required' })
-		.max(15, { message: 'Skills must not exceed 15 items' }),
+		.max(15, { message: 'Skills must not exceed 15 items' })
+		.optional()
+		.nullable(),
+	courseResource: z.instanceof(File, { message: 'Course resource must be a valid file' }).optional().nullable(),
+	status: z
+		.enum(['published', 'draft'], {
+			required_error: 'Status is required',
+			invalid_type_error: 'Status must be either published or draft',
+		})
+		.optional()
+		.nullable(),
 });
-
 const addLessonSchema: z.ZodType<AddLessonProps> = z.object({
 	courseId: z.string().uuid({ message: 'Invalid course ID format' }),
 	title: z

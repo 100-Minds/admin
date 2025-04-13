@@ -335,3 +335,52 @@ export const VerifiedIcon = ({ className }: { className?: string }) => (
 		/>
 	</svg>
 );
+
+export const ModuleIcon = ({ className }: { className?: string }) => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		width="24"
+		height="24"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		strokeWidth="1.5"
+		strokeLinecap="round"
+		strokeLinejoin="round"
+		className={className}
+	>
+		<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" />
+		<path d="M12 22V12" />
+		<polyline points="3.29 7 12 12 20.71 7" />
+		<path d="m7.5 4.27 9 5.15" />
+	</svg>
+);
+
+export const ResourseIcon: React.FC<{ className?: string }> = ({ className }) => (
+	<svg
+		width="150"
+		height="150"
+		viewBox="0 0 150 150"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+		className={className}
+	>
+		<rect width="150" height="150" rx="12" fill="#FFA500" />
+		<path
+			d="M48 56C48 53.7909 49.7909 52 52 52H68L74 60H98C100.209 60 102 61.7909 102 64V96C102 98.2091 100.209 100 98 100H52C49.7909 100 48 98.2091 48 96V56Z"
+			stroke="#999999"
+			strokeWidth="2"
+			fill="white"
+		/>
+		<path
+			d="M75 75V90M75 90L69 84M75 90L81 84"
+			stroke="#999999"
+			strokeWidth="1.5"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		/>
+		<text x="75" y="125" textAnchor="middle" fill="#666666" fontSize="14" fontFamily="Arial, sans-serif">
+			Upload Resource
+		</text>
+	</svg>
+);

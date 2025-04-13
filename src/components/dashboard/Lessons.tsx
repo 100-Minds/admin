@@ -1,7 +1,7 @@
 'use client';
 
 import { ApiResponse } from '@/interfaces';
-import { Course, Chapter, UploadLessonData } from '@/interfaces/ApiResponses';
+import { Chapter, UploadLessonData } from '@/interfaces/ApiResponses';
 import { AddLessonType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useRef } from 'react';
@@ -47,11 +47,19 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+//import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { isValidUUID } from '@/lib/helpers/isValidUUID';
 import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 
-export default function Lessonn() {
+export default function Lessonn({
+	courseId,
+	courseName,
+	activeSection,
+}: {
+	courseId: string;
+	courseName: string;
+	activeSection: string | null;
+}) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -62,11 +70,12 @@ export default function Lessonn() {
 	const [fileSize, setFileSize] = useState<number | null>(null);
 	const [videoLength, setVideoLength] = useState<string | null>(null);
 	const [error, setError] = React.useState<string | null>(null);
-	const [courseId, setCourseId] = useState<string>('');
-	const [selectKey, setSelectKey] = useState(0);
+	//const [courseId, setCourseId] = useState<string>('');
+	//const [selectKey, setSelectKey] = useState(0);
 	const [editingRowId, setEditingRowId] = useState<string | null>(null);
 	const [editedData, setEditedData] = useState<Partial<AddLessonType>>({});
 	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+	const titleInputRef = useRef<HTMLInputElement>(null);
 	const queryClient = useQueryClient();
 
 	const {
@@ -82,6 +91,15 @@ export default function Lessonn() {
 		defaultValues: { courseId: '' },
 	});
 
+	useEffect(() => {
+		if (activeSection === 'lesson' && titleInputRef.current) {
+			// Add a slight delay to ensure the collapsible has opened
+			setTimeout(() => {
+				titleInputRef.current?.focus();
+			}, 100);
+		}
+	}, [activeSection]);
+
 	const {
 		data: lessons,
 		isLoading: loadingLessons,
@@ -92,6 +110,7 @@ export default function Lessonn() {
 			const { data: responseData, error } = await callApi<ApiResponse<Chapter[]>>(
 				`/course/get-chapters?courseId=${courseId}`
 			);
+
 			if (error) {
 				throw new Error(error.message || 'Something went wrong while fetching course lessons.');
 			}
@@ -114,34 +133,6 @@ export default function Lessonn() {
 		}
 	}, [lessonError]);
 
-	const {
-		data: courses,
-		isLoading: courseLoading,
-		error: queryError,
-	} = useQuery<Course[], Error>({
-		queryKey: ['course'],
-		queryFn: async () => {
-			const { data: responseData, error } = await callApi<ApiResponse<Course[]>>('/course/get-courses');
-			if (error) {
-				throw new Error(error.message || 'Something went wrong while fetching courses.');
-			}
-			if (!responseData?.data) {
-				throw new Error('No course data returned');
-			}
-			//toast.success('Courses Fetched', { description: 'Successfully fetched courses.' });
-			return responseData.data;
-		},
-	});
-
-	useEffect(() => {
-		if (queryError) {
-			const errorMessage = queryError.message || 'An unexpected error occurred while fetching courses.';
-			toast.error('Failed to fetch courses', {
-				description: errorMessage,
-			});
-		}
-	}, [queryError]);
-
 	const onSubmit: SubmitHandler<AddLessonType> = async (data: AddLessonType) => {
 		try {
 			setIsLoading(true);
@@ -151,7 +142,7 @@ export default function Lessonn() {
 			}
 
 			const { data: responseData, error } = await callApi<ApiResponse<UploadLessonData>>('/course/create-lesson', {
-				courseId: data.courseId,
+				courseId,
 				title: data.title,
 				description: data.description,
 				fileName,
@@ -172,7 +163,7 @@ export default function Lessonn() {
 				setFileSize(null);
 				setVideoLength(null);
 				reset();
-				setSelectKey((prev) => prev + 1);
+				//setSelectKey((prev) => prev + 1);
 				setIsLoading(false);
 
 				// Step 2: Extract uploadUrl and key from responseData
@@ -331,11 +322,11 @@ export default function Lessonn() {
 		}
 	};
 
-	const handleCourseChange = debounce((value: string) => {
-		if (value !== courseId) {
-			setCourseId(value);
-		}
-	}, 300);
+	// const handleCourseChange = debounce((value: string) => {
+	// 	if (value !== courseId) {
+	// 		setCourseId(value);
+	// 	}
+	// }, 300);
 
 	const removeFile = () => {
 		setFileName(null);
@@ -599,43 +590,31 @@ export default function Lessonn() {
 			<div className="flex flex-col w-full mt-10">
 				<div className="w-full max-w-md space-y-6 px-6 mb-20 mx-auto">
 					<div className="flex flex-col items-center space-y-2">
-						<h2 className="text-center text-xl font-semibold text-gray-900">Create A Lesson For a Course</h2>
+						<h2 className="text-center text-xl font-semibold text-gray-900">{`Create A Lesson For ${courseName}`}</h2>
 					</div>
-					<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-						<div>
-							<label className="text-sm font-medium text-gray-700">
-								Select Course <span className="text-red-500">*</span>
-							</label>
-							<Select
-								onValueChange={(value) => setValue('courseId', value, { shouldValidate: true })}
-								disabled={courseLoading}
-								key={selectKey}
-							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue placeholder={courseLoading ? 'Loading courses...' : 'Choose a course'} />
-								</SelectTrigger>
-
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-								>
-									{courses?.map((course) => (
-										<SelectItem key={course.id} value={course.id} className="w-full">
-											{course.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{errors.courseId && <FormErrorMessage error={errors.courseId} errorMsg={errors.courseId.message} />}
-						</div>
-
+					<form className="space-y-4 relative" onSubmit={handleSubmit(onSubmit)}>
 						<div className="mt-4">
 							<label htmlFor="title" className="text-sm font-medium text-gray-700">
 								Chapter title<span className="text-red-500">*</span>
 							</label>
+							{/* <Input
+								{...register('title')}
+								//autoFocus
+								type="text"
+								id="title"
+								aria-label="Title"
+								placeholder="Title"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.title && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/> */}
 							<Input
 								{...register('title')}
-								autoFocus
+								ref={(e) => {
+									// This handles both react-hook-form's ref and our own ref
+									register('title').ref(e);
+									titleInputRef.current = e;
+								}}
 								type="text"
 								id="title"
 								aria-label="Title"
@@ -653,7 +632,6 @@ export default function Lessonn() {
 							</label>
 							<Input
 								{...register('description')}
-								autoFocus
 								type="text"
 								id="description"
 								aria-label="Description"
@@ -715,7 +693,7 @@ export default function Lessonn() {
 					</form>
 				</div>
 
-				<div className="mb-2 bg-white lg:w-[50%] md:w-full">
+				{/* <div className="mb-2 bg-white lg:w-[50%] md:w-full">
 					<Select onValueChange={handleCourseChange} disabled={courseLoading} key={selectKey}>
 						<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
 							<SelectValue placeholder={courseLoading ? 'Loading courses...' : 'Choose a course'} />
@@ -732,7 +710,7 @@ export default function Lessonn() {
 							))}
 						</SelectContent>
 					</Select>
-				</div>
+				</div> */}
 
 				{loadingLessons ? (
 					<div className="w-full bg-white rounded-md px-6 py-6">

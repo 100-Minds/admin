@@ -176,7 +176,6 @@ export default function Quizz() {
 	const onSubmit: SubmitHandler<AddQuizType> = async (data: AddQuizType) => {
 		try {
 			setIsLoading(true);
-			console.log(data);
 
 			const { data: responseData, error } = await callApi<ApiResponse<QuizData>>('/quiz/create', {
 				question: data.question,
@@ -273,11 +272,8 @@ export default function Quizz() {
 	};
 
 	useEffect(() => {
-		console.log(editingRowId);
 
 		if (editingRowId && inputRefs.current[editingRowId]) {
-			console.log(inputRefs.current[editingRowId]);
-			console.log(inputRefs.current[editingRowId]?.focus());
 			inputRefs.current[editingRowId]?.focus();
 		}
 	}, [editingRowId]);

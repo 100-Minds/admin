@@ -26,4 +26,6 @@ export {
 	SaveIcon,
 	QuizIcon,
 	VerifiedIcon,
+	ModuleIcon,
+	ResourseIcon,
 } from './svg';

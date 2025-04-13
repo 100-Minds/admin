@@ -2,13 +2,13 @@
 
 import { ApiResponse } from '@/interfaces';
 import { Module, ModuleData } from '@/interfaces/ApiResponses';
-import { AddModuleType, callApi, zodValidator } from '@/lib';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { callApi } from '@/lib';
+//import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useRef } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+//import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { FormErrorMessage } from '../common';
+//import { FormErrorMessage } from '../common';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
 import { format } from 'date-fns';
@@ -50,7 +50,7 @@ import React from 'react';
 import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 
 export default function Modulee() {
-	const [isLoading, setIsLoading] = useState(false);
+	//const [isLoading, setIsLoading] = useState(false);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -62,16 +62,16 @@ export default function Modulee() {
 	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
 
-	const {
-		register,
-		handleSubmit,
-		reset,
-		formState: { errors, isSubmitting },
-	} = useForm<AddModuleType>({
-		resolver: zodResolver(zodValidator('module')!),
-		mode: 'onChange',
-		reValidateMode: 'onChange',
-	});
+	// const {
+	// 	register,
+	// 	handleSubmit,
+	// 	reset,
+	// 	formState: { errors, isSubmitting },
+	// } = useForm<AddModuleType>({
+	// 	resolver: zodResolver(zodValidator('module')!),
+	// 	mode: 'onChange',
+	// 	reValidateMode: 'onChange',
+	// });
 
 	const {
 		data: modules,
@@ -102,30 +102,30 @@ export default function Modulee() {
 		}
 	}, [queryError]);
 
-	const onSubmit: SubmitHandler<AddModuleType> = async (data: AddModuleType) => {
-		try {
-			setIsLoading(true);
-			const { data: responseData, error } = await callApi<ApiResponse<ModuleData>>('/course/create-module', {
-				name: data.name,
-			});
+	// const onSubmit: SubmitHandler<AddModuleType> = async (data: AddModuleType) => {
+	// 	try {
+	// 		setIsLoading(true);
+	// 		const { data: responseData, error } = await callApi<ApiResponse<ModuleData>>('/course/create-module', {
+	// 			name: data.name,
+	// 		});
 
-			if (error) {
-				throw new Error(error.message);
-			}
+	// 		if (error) {
+	// 			throw new Error(error.message);
+	// 		}
 
-			if (responseData?.status === 'success') {
-				toast.success('Course Module Created', { description: 'The module has been added successfully.' });
-				queryClient.invalidateQueries({ queryKey: ['module'] });
-			}
-		} catch (err) {
-			toast.error('Module Creation Failed', {
-				description: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.',
-			});
-		} finally {
-			setIsLoading(false);
-			reset();
-		}
-	};
+	// 		if (responseData?.status === 'success') {
+	// 			toast.success('Course Module Created', { description: 'The module has been added successfully.' });
+	// 			queryClient.invalidateQueries({ queryKey: ['module'] });
+	// 		}
+	// 	} catch (err) {
+	// 		toast.error('Module Creation Failed', {
+	// 			description: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.',
+	// 		});
+	// 	} finally {
+	// 		setIsLoading(false);
+	// 		reset();
+	// 	}
+	// };
 
 	const onDeleteModule = async (moduleId: string) => {
 		try {
@@ -397,7 +397,7 @@ export default function Modulee() {
 	return (
 		<>
 			<div className="flex flex-col w-full">
-				<div className="w-full max-w-md space-y-6 px-6 mb-20 mx-auto">
+				{/* <div className="w-full max-w-md space-y-6 px-6 mb-20 mx-auto">
 					<div className="flex flex-col items-center space-y-2">
 						<h2 className="text-center text-xl font-semibold text-gray-900">Create Course Module </h2>
 					</div>
@@ -429,7 +429,7 @@ export default function Modulee() {
 							{isSubmitting || isLoading ? 'Creating...' : 'Create'}
 						</Button>
 					</form>
-				</div>
+				</div> */}
 
 				{loading ? (
 					<div className="w-full bg-white rounded-md px-6 py-6">

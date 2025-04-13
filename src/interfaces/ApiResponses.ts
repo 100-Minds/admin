@@ -50,12 +50,26 @@ export type Course = {
 	id: string;
 	name: string;
 	courseImage: string;
+	courseResources: string | null;
+	status: string;
 	userId: string;
 	moduleId: string;
 	scenarioName: string | null;
 	scenarioId: string | null;
 	isDeleted: boolean;
 	created_at: string;
+};
+
+export type AdminCourse = {
+	course: Course;
+	scenarios: {
+		scenarioId: string;
+		scenarioName: string;
+	}[];
+	skills: {
+		powerSkillId: string;
+		powerSkillName: string;
+	}[];
 };
 
 export type UploadLesson = {
@@ -114,6 +128,7 @@ export type UploadLessonData = UploadLesson;
 export type JourneyData = Journey[];
 export type TeamData = Team[];
 export type QuizData = Quiz[];
+export type AdminCourseData = AdminCourse[];
 
 export type ApiResponse<T = Record<string, unknown>> = {
 	status: string;

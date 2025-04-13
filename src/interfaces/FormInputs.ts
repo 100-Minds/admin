@@ -49,8 +49,10 @@ export type AddCourseProps = {
 	name: string;
 	courseImage: File | null;
 	moduleId: string;
-	scenario: string;
-	skills: string[];
+	scenario?: string[] | null;
+	skills?: string[] | null;
+	courseResource?: File | null;
+	status?: 'published' | 'draft' | null;
 };
 
 export type AddLessonProps = {
