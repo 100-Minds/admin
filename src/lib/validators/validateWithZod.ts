@@ -573,6 +573,8 @@ const addLessonSchema: z.ZodType<AddLessonProps> = z.object({
 		.min(1024, { message: 'File size must be at least 1KB' })
 		.max(500 * 1024 * 1024, { message: 'File size must not exceed 500MB' }),
 	videoLength: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, { message: 'Invalid video length format (HH:MM:SS)' }),
+	chapterResources: z.instanceof(File).optional().nullable(),
+	//lessonVideo: z.instanceof(File).nullable(),
 });
 
 const addJourneySchema: z.ZodType<AddJourneyProps> = z.object({
@@ -600,8 +602,8 @@ const addQuizSchema: z.ZodType<AddQuizProps> = z.object({
 	isCorrect: z.string().refine((val) => ['optionA', 'optionB', 'optionC', 'optionD'].includes(val), {
 		message: 'Select a valid correct answer',
 	}),
-	chapterId: z.string().uuid({ message: 'Invalid chapter ID' }),
-	courseId: z.string().uuid({ message: 'Invalid course ID' }),
+	// chapterId: z.string().uuid({ message: 'Invalid chapter ID' }),
+	// courseId: z.string().uuid({ message: 'Invalid course ID' }),
 });
 
 // export const zodValidator = (formType: FormType) => {

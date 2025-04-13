@@ -1,7 +1,7 @@
 'use client';
 
 import { ApiResponse } from '@/interfaces';
-import { Chapter, Course, Quiz, QuizData } from '@/interfaces/ApiResponses';
+import { Quiz, QuizData } from '@/interfaces/ApiResponses';
 import { AddQuizType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useRef } from 'react';
@@ -52,7 +52,7 @@ import React from 'react';
 import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 import { isValidUUID } from '@/lib/helpers/isValidUUID';
 
-export default function Quizz() {
+export default function Quizz({ chapterId, courseId }: { chapterId: string; courseId: string }) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -61,11 +61,7 @@ export default function Quizz() {
 	const [error, setError] = React.useState<string | null>(null);
 	const [editingRowId, setEditingRowId] = useState<string | null>(null);
 	const [editedData, setEditedData] = useState<Partial<Quiz>>({});
-	const [chapterId, setChapterId] = useState<string>('');
-	const [selectKey, setSelectKey] = useState(0);
-	const [selectKey2, setSelectKey2] = useState(0);
 	const [selectKey3, setSelectKey3] = useState(0);
-	const [courseId, setCourseId] = useState<string>('');
 	const skipPageResetRef = useRef(true);
 	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
@@ -113,65 +109,65 @@ export default function Quizz() {
 		}
 	}, [queryError]);
 
-	const {
-		data: courses,
-		isLoading: courseLoading,
-		error: courseQueryError,
-	} = useQuery<Course[], Error>({
-		queryKey: ['course'],
-		queryFn: async () => {
-			const { data: responseData, error } = await callApi<ApiResponse<Course[]>>('/course/get-courses');
-			if (error) {
-				throw new Error(error.message || 'Something went wrong while fetching courses.');
-			}
-			if (!responseData?.data) {
-				throw new Error('No course data returned');
-			}
-			//toast.success('Courses Fetched', { description: 'Successfully fetched courses.' });
-			return responseData.data;
-		},
-	});
+	// const {
+	// 	data: courses,
+	// 	isLoading: courseLoading,
+	// 	error: courseQueryError,
+	// } = useQuery<Course[], Error>({
+	// 	queryKey: ['course'],
+	// 	queryFn: async () => {
+	// 		const { data: responseData, error } = await callApi<ApiResponse<Course[]>>('/course/get-courses');
+	// 		if (error) {
+	// 			throw new Error(error.message || 'Something went wrong while fetching courses.');
+	// 		}
+	// 		if (!responseData?.data) {
+	// 			throw new Error('No course data returned');
+	// 		}
+	// 		//toast.success('Courses Fetched', { description: 'Successfully fetched courses.' });
+	// 		return responseData.data;
+	// 	},
+	// });
 
-	useEffect(() => {
-		if (courseQueryError) {
-			const errorMessage = courseQueryError.message || 'An unexpected error occurred while fetching courses.';
-			toast.error('Failed to fetch courses', {
-				description: errorMessage,
-			});
-		}
-	}, [courseQueryError]);
+	// useEffect(() => {
+	// 	if (courseQueryError) {
+	// 		const errorMessage = courseQueryError.message || 'An unexpected error occurred while fetching courses.';
+	// 		toast.error('Failed to fetch courses', {
+	// 			description: errorMessage,
+	// 		});
+	// 	}
+	// }, [courseQueryError]);
 
-	const {
-		data: chapters,
-		isLoading: chapterLoading,
-		error: chapterQueryError,
-	} = useQuery<Chapter[], Error>({
-		queryKey: ['chapter', courseId],
-		queryFn: async () => {
-			const { data: responseData, error } = await callApi<ApiResponse<Chapter[]>>(
-				`/course/get-chapters?courseId=${courseId}`
-			);
-			if (error) {
-				throw new Error(error.message || 'Something went wrong while fetching course chapters.');
-			}
-			if (!responseData?.data) {
-				throw new Error('No course chapter data returned');
-			}
-			setSelectKey2((prev) => prev + 1);
-			//toast.success('Chapters Fetched', { description: 'Successfully fetched course chapters.' });
-			return responseData.data;
-		},
-		enabled: !!courseId && isValidUUID(courseId),
-	});
+	// const {
+	// 	data: chapters,
+	// 	isLoading: chapterLoading,
+	// 	error: chapterQueryError,
+	// } = useQuery<Chapter[], Error>({
+	// 	queryKey: ['chapter', courseId],
+	// 	queryFn: async () => {
+	// 		const { data: responseData, error } = await callApi<ApiResponse<Chapter[]>>(
+	// 			`/course/get-chapters?courseId=${courseId}`
+	// 		);
+	// 		if (error) {
+	// 			throw new Error(error.message || 'Something went wrong while fetching course chapters.');
+	// 		}
+	// 		if (!responseData?.data) {
+	// 			throw new Error('No course chapter data returned');
+	// 		}
+	// 		setSelectKey2((prev) => prev + 1);
+	// 		//toast.success('Chapters Fetched', { description: 'Successfully fetched course chapters.' });
+	// 		return responseData.data;
+	// 	},
+	// 	enabled: !!courseId && isValidUUID(courseId),
+	// });
 
-	useEffect(() => {
-		if (chapterQueryError) {
-			const errorMessage = chapterQueryError.message || 'An unexpected error occurred while fetching course chapters.';
-			toast.error('Failed to fetch chapters', {
-				description: errorMessage,
-			});
-		}
-	}, [chapterQueryError]);
+	// useEffect(() => {
+	// 	if (chapterQueryError) {
+	// 		const errorMessage = chapterQueryError.message || 'An unexpected error occurred while fetching course chapters.';
+	// 		toast.error('Failed to fetch chapters', {
+	// 			description: errorMessage,
+	// 		});
+	// 	}
+	// }, [chapterQueryError]);
 
 	const onSubmit: SubmitHandler<AddQuizType> = async (data: AddQuizType) => {
 		try {
@@ -184,8 +180,8 @@ export default function Quizz() {
 				optionC: data.optionC,
 				optionD: data.optionD,
 				isCorrect: data.isCorrect,
-				chapterId: data.chapterId,
-				courseId: data.courseId,
+				chapterId,
+				courseId,
 			});
 
 			if (error) {
@@ -194,7 +190,7 @@ export default function Quizz() {
 
 			if (responseData?.status === 'success') {
 				toast.success('Quiz Created', { description: 'Chapter quiz has been created successfully.' });
-				queryClient.invalidateQueries({ queryKey: ['quiz', data.chapterId] });
+				queryClient.invalidateQueries({ queryKey: ['quiz', chapterId] });
 			}
 		} catch (err) {
 			toast.error('Quiz Creation Failed', {
@@ -202,8 +198,6 @@ export default function Quizz() {
 			});
 		} finally {
 			setIsLoading(false);
-			setSelectKey((prev) => prev + 1);
-			setSelectKey2((prev) => prev + 1);
 			setSelectKey3((prev) => prev + 1);
 			reset();
 		}
@@ -272,23 +266,22 @@ export default function Quizz() {
 	};
 
 	useEffect(() => {
-
 		if (editingRowId && inputRefs.current[editingRowId]) {
 			inputRefs.current[editingRowId]?.focus();
 		}
 	}, [editingRowId]);
 
-	const handleCourseChange = (value: string) => {
-		// if (value !== courseId) {
-		setCourseId(value);
-		setValue('courseId', value, { shouldValidate: true });
-		//}
-	};
-	const handleChapterChange = debounce((value: string) => {
-		if (value !== chapterId) {
-			setChapterId(value);
-		}
-	}, 300);
+	// const handleCourseChange = (value: string) => {
+	// 	// if (value !== courseId) {
+	// 	setCourseId(value);
+	// 	setValue('courseId', value, { shouldValidate: true });
+	// 	//}
+	// };
+	// const handleChapterChange = debounce((value: string) => {
+	// 	if (value !== chapterId) {
+	// 		setChapterId(value);
+	// 	}
+	// }, 300);
 
 	const columns: ColumnDef<Quiz>[] = React.useMemo(
 		() => [
@@ -668,10 +661,10 @@ export default function Quizz() {
 			<div className="flex flex-col w-full">
 				<div className="w-full max-w-md space-y-6 px-6 mb-20 mx-auto">
 					<div className="flex flex-col items-center space-y-2">
-						<h2 className="text-center text-xl font-semibold text-gray-900">Create A Quiz</h2>
+						<h2 className="text-center text-xl font-semibold text-gray-900 mt-8">Create Quiz</h2>
 					</div>
 					<form className="space-y-4 relative" onSubmit={handleSubmit(onSubmit)}>
-						<div>
+						{/* <div>
 							<label className="text-sm font-medium text-gray-700">
 								Select Course <span className="text-red-500">*</span>
 							</label>
@@ -719,7 +712,7 @@ export default function Quizz() {
 								</SelectContent>
 							</Select>
 							{errors.chapterId && <FormErrorMessage error={errors.chapterId} errorMsg={errors.chapterId.message} />}
-						</div>
+						</div> */}
 
 						<div className="mt-4">
 							<label htmlFor="name" className="text-sm font-medium text-gray-700">
@@ -842,7 +835,7 @@ export default function Quizz() {
 					</form>
 				</div>
 
-				<div className="mb-2 flex flex-col md:flex-row space-x-5 w-full">
+				{/* <div className="mb-2 flex flex-col md:flex-row space-x-5 w-full">
 					<div className="bg-white w-full mb-3 md:mb-0">
 						<Select onValueChange={(value) => setCourseId(value)} disabled={courseLoading}>
 							<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
@@ -880,7 +873,7 @@ export default function Quizz() {
 							</SelectContent>
 						</Select>
 					</div>
-				</div>
+				</div> */}
 
 				{loading ? (
 					<div className="w-full bg-white rounded-md px-6 py-6">

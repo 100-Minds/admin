@@ -83,6 +83,7 @@ export type Chapter = {
 	description: string;
 	courseId: string;
 	chapterNumber: number;
+	chapterResources: string | null;
 	videoUrl: string;
 	isDeleted: boolean;
 	created_at: string;

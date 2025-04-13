@@ -8,7 +8,7 @@ import { useEffect, useState, useRef } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { FormErrorMessage } from '../common';
+import { FormErrorMessage, QuizIcon } from '../common';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
 import { format } from 'date-fns';
@@ -49,7 +49,8 @@ import {
 import React from 'react';
 //import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { isValidUUID } from '@/lib/helpers/isValidUUID';
-import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
+import { useRouter } from 'next/navigation';
+import { EditIcon, DeleteIcon } from '../common';
 
 export default function Lessonn({
 	courseId,
@@ -72,10 +73,9 @@ export default function Lessonn({
 	const [error, setError] = React.useState<string | null>(null);
 	//const [courseId, setCourseId] = useState<string>('');
 	//const [selectKey, setSelectKey] = useState(0);
-	const [editingRowId, setEditingRowId] = useState<string | null>(null);
-	const [editedData, setEditedData] = useState<Partial<AddLessonType>>({});
-	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+	//const [editingRowId, setEditingRowId] = useState<string | null>(null);
 	const titleInputRef = useRef<HTMLInputElement>(null);
+	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	const {
@@ -157,6 +157,7 @@ export default function Lessonn({
 			if (responseData?.status === 'success') {
 				//Step 1
 				toast.success('Lesson Created', { description: 'The lesson for this course has been added successfully.' });
+				queryClient.invalidateQueries({ queryKey: ['lesson', courseId] });
 				setFileName(null);
 				setFileType(null);
 				setFileSize(null);
@@ -252,49 +253,43 @@ export default function Lessonn({
 		}
 	};
 
-	const onEditLesson = async (chapterId: string, updatedData: Partial<AddLessonType>) => {
-		try {
-			const dataToSend = {
-				title: updatedData.title,
-				description: updatedData.description,
-			};
+	// const onEditLesson = async (chapterId: string, updatedData: Partial<AddLessonType>) => {
+	// 	try {
+	// 		const dataToSend = {
+	// 			title: updatedData.title,
+	// 			description: updatedData.description,
+	// 		};
 
-			Object.keys(dataToSend).forEach((key) => {
-				if (dataToSend[key as keyof typeof dataToSend] === undefined) {
-					delete (dataToSend as Record<string, unknown>)[key];
-				}
-			});
+	// 		Object.keys(dataToSend).forEach((key) => {
+	// 			if (dataToSend[key as keyof typeof dataToSend] === undefined) {
+	// 				delete (dataToSend as Record<string, unknown>)[key];
+	// 			}
+	// 		});
 
-			if (Object.keys(dataToSend).length === 0) {
-				toast.warning('No changes to update', { description: 'No fields were modified.' });
-				return false;
-			}
+	// 		if (Object.keys(dataToSend).length === 0) {
+	// 			toast.warning('No changes to update', { description: 'No fields were modified.' });
+	// 			return false;
+	// 		}
 
-			const { data: responseData, error } = await callApi<ApiResponse<AddLessonType>>(`/course/update-lesson`, {
-				chapterId,
-				...dataToSend,
-			});
+	// 		const { data: responseData, error } = await callApi<ApiResponse<AddLessonType>>(`/course/update-lesson`, {
+	// 			chapterId,
+	// 			...dataToSend,
+	// 		});
 
-			if (error) throw new Error(error.message);
-			if (responseData?.status === 'success') {
-				toast.success('Lesson Updated', { description: 'Lesson has been successfully updated.' });
-				queryClient.invalidateQueries({ queryKey: ['lesson'] });
-				return true;
-			}
-			return false;
-		} catch (err) {
-			toast.error('Lesson Update Failed', {
-				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
-			});
-			return false;
-		}
-	};
-
-	useEffect(() => {
-		if (editingRowId && inputRefs.current[editingRowId]) {
-			inputRefs.current[editingRowId]?.focus();
-		}
-	}, [editingRowId]);
+	// 		if (error) throw new Error(error.message);
+	// 		if (responseData?.status === 'success') {
+	// 			toast.success('Lesson Updated', { description: 'Lesson has been successfully updated.' });
+	// 			queryClient.invalidateQueries({ queryKey: ['lesson'] });
+	// 			return true;
+	// 		}
+	// 		return false;
+	// 	} catch (err) {
+	// 		toast.error('Lesson Update Failed', {
+	// 			description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+	// 		});
+	// 		return false;
+	// 	}
+	// };
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -320,12 +315,6 @@ export default function Lessonn({
 			};
 		}
 	};
-
-	// const handleCourseChange = debounce((value: string) => {
-	// 	if (value !== courseId) {
-	// 		setCourseId(value);
-	// 	}
-	// }, 300);
 
 	const removeFile = () => {
 		setFileName(null);
@@ -370,21 +359,21 @@ export default function Lessonn({
 				},
 				cell: ({ row }) => {
 					const title = row.original.title;
-					const isEditing = editingRowId === row.original.id;
+					// const isEditing = editingRowId === row.original.id;
 
-					if (isEditing) {
-						return (
-							<Input
-								ref={(el) => {
-									inputRefs.current[row.original.id] = el;
-								}}
-								value={editedData.title || title}
-								onChange={(e) => setEditedData({ ...editedData, title: e.target.value })}
-								className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-								autoFocus
-							/>
-						);
-					}
+					// if (isEditing) {
+					// 	return (
+					// 		<Input
+					// 			ref={(el) => {
+					// 				inputRefs.current[row.original.id] = el;
+					// 			}}
+					// 			value={editedData.title || title}
+					// 			onChange={(e) => setEditedData({ ...editedData, title: e.target.value })}
+					// 			className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+					// 			autoFocus
+					// 		/>
+					// 	);
+					// }
 
 					return (
 						<div className="flex items-center space-x-2">
@@ -409,26 +398,7 @@ export default function Lessonn({
 						</Button>
 					);
 				},
-				cell: ({ row }) => {
-					const description = row.original.description;
-					const isEditing = editingRowId === row.original.id;
-
-					if (isEditing) {
-						return (
-							<Input
-								ref={(el) => {
-									inputRefs.current[row.original.id] = el;
-								}}
-								value={editedData.description || description}
-								onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
-								className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-								autoFocus
-							/>
-						);
-					}
-
-					return <div className="lowercase">{row.getValue('description')}</div>;
-				},
+				cell: ({ row }) => <div className="lowercase">{row.getValue('description')}</div>,
 				accessorFn: (row) => `${row.description}`,
 			},
 			{
@@ -472,8 +442,7 @@ export default function Lessonn({
 				id: 'actions',
 				enableHiding: false,
 				cell: ({ row }) => {
-					const lesson = row.original;
-					const isEditing = editingRowId === lesson.id;
+					//const lesson = row.original;
 
 					return (
 						<DropdownMenu>
@@ -485,16 +454,15 @@ export default function Lessonn({
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
-								{!isEditing ? (
-									<>
-										<DropdownMenuItem
-											onClick={() => navigator.clipboard.writeText(lesson.id)}
-											className="hover:cursor-pointer"
-										>
-											<CopyIcon className=" h-4 w-4" />
-											Copy Course ID
-										</DropdownMenuItem>
-										<DropdownMenuItem
+
+								{/* <DropdownMenuItem
+									onClick={() => navigator.clipboard.writeText(lesson.id)}
+									className="hover:cursor-pointer"
+								>
+									<CopyIcon className=" h-4 w-4" />
+									Copy Course ID
+								</DropdownMenuItem> */}
+								{/* <DropdownMenuItem
 											onClick={() => {
 												setEditingRowId(lesson.id);
 												setEditedData(lesson);
@@ -503,54 +471,45 @@ export default function Lessonn({
 										>
 											<EditIcon className=" h-4 w-4" />
 											Edit
-										</DropdownMenuItem>
+										</DropdownMenuItem> */}
 
-										<DropdownMenuSeparator />
-										<DropdownMenuItem
-											className="hover:cursor-pointer text-red-500"
-											onClick={async () => {
-												const success = await onDeleteLesson(row.original.id);
-												if (success) await queryClient.invalidateQueries({ queryKey: ['lesson'] });
-											}}
-										>
-											<DeleteIcon className=" h-4 w-4" />
-											Delete
-										</DropdownMenuItem>
-									</>
-								) : (
-									<>
-										<DropdownMenuItem
-											onClick={async () => {
-												const success = await onEditLesson(lesson.id, editedData);
-												if (success) {
-													setEditedData({});
-													setEditingRowId(null);
-												}
-											}}
-											className="hover:cursor-pointer"
-										>
-											<SaveIcon className=" h-4 w-4" />
-											Save
-										</DropdownMenuItem>
-										<DropdownMenuItem
-											onClick={() => {
-												setEditingRowId(null);
-												setEditedData({});
-											}}
-											className="hover:cursor-pointer text-red-500"
-										>
-											<XIcon className=" h-4 w-4" />
-											Cancel
-										</DropdownMenuItem>
-									</>
-								)}
+								<DropdownMenuItem
+									onClick={() => {
+										router.push(`/courses/${courseId}/lesson`);
+									}}
+									className="hover:cursor-pointer"
+								>
+									<EditIcon className=" h-4 w-4" />
+									Edit Lesson
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									onClick={() => {
+										router.push(`/courses/${courseId}/lesson?action=addQuiz`);
+									}}
+									className="hover:cursor-pointer"
+								>
+									<QuizIcon className="h-4 w-4" />
+									Add Quiz
+								</DropdownMenuItem>
+
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									className="hover:cursor-pointer text-red-500"
+									onClick={async () => {
+										const success = await onDeleteLesson(row.original.id);
+										if (success) await queryClient.invalidateQueries({ queryKey: ['lesson'] });
+									}}
+								>
+									<DeleteIcon className=" h-4 w-4" />
+									Delete
+								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					);
 				},
 			},
 		],
-		[editedData, editingRowId, queryClient]
+		[queryClient]
 	);
 
 	const table = useReactTable({

@@ -63,6 +63,7 @@ export type AddLessonProps = {
 	fileType: string;
 	fileSize: number;
 	videoLength: string;
+	chapterResources?:  File | null;
 };
 
 export type AddJourneyProps = {
@@ -99,6 +100,4 @@ export type AddQuizProps = {
 	optionC: string | null;
 	optionD: string | null;
 	isCorrect: string;
-	chapterId: string;
-	courseId: string;
 };
