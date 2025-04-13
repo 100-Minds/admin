@@ -547,7 +547,6 @@ const addCourseSchema: z.ZodType<AddCourseProps> = z.object({
 		.nullable(),
 });
 const addLessonSchema: z.ZodType<AddLessonProps> = z.object({
-	courseId: z.string().uuid({ message: 'Invalid course ID format' }),
 	title: z
 		.string()
 		.min(5, { message: 'Title must be at least 5 characters long' })

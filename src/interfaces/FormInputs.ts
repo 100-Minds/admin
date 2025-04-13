@@ -56,7 +56,6 @@ export type AddCourseProps = {
 };
 
 export type AddLessonProps = {
-	courseId: string;
 	title: string;
 	description: string;
 	lessonVideo: File | null;

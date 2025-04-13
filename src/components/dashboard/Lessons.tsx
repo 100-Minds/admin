@@ -88,7 +88,6 @@ export default function Lessonn({
 		resolver: zodResolver(zodValidator('lesson')!),
 		mode: 'onChange',
 		reValidateMode: 'onChange',
-		defaultValues: { courseId: '' },
 	});
 
 	useEffect(() => {
@@ -219,7 +218,7 @@ export default function Lessonn({
 					});
 				}
 
-				queryClient.invalidateQueries({ queryKey: ['lesson', data.courseId] });
+				queryClient.invalidateQueries({ queryKey: ['lesson', courseId] });
 			}
 		} catch (err) {
 			toast.error('Lesson Creation Failed', {
