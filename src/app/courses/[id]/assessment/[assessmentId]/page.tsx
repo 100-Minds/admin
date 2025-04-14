@@ -4,18 +4,18 @@ import AssessmentEditForm from '@/components/dashboard/AssessmentEditForm';
 import { Metadata } from 'next';
 
 export const generateMetadata = async (props: {
-	params: { courseId: string; assessmentId: string };
+	params: { id: string; assessmentId: string };
 }): Promise<Metadata> => {
-	const { courseId, assessmentId } = await props.params;
+	const { id, assessmentId } = await props.params;
 
 	return generatePageMetadata({
 		title: `Edit Assessment - 100 Minds`,
 		content: `Edit assessment details with 100 Minds Dashboard`,
-		url: `https://admin-mmyv.onrender.com/courses/${courseId}/assessment/${assessmentId}`,
+		url: `https://admin-mmyv.onrender.com/courses/${id}/assessment/${assessmentId}`,
 	});
 };
 
-export default async function EditAssessment(props: { params: { courseId: string; assessmentId: string } }) {
+export default async function EditAssessment(props: { params: { id: string; assessmentId: string } }) {
 	const { assessmentId } = await props.params;
 
 	return (
