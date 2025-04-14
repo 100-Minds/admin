@@ -14,7 +14,6 @@ import { Checkbox } from '../ui/checkbox';
 import { format } from 'date-fns';
 import debounce from 'lodash/debounce';
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -240,10 +239,6 @@ export default function PowerSkilll() {
 
 				return (
 					<div className="flex items-center space-x-2">
-						<Avatar>
-							<AvatarImage src="/icons/Skill.svg" />
-							<AvatarFallback>SK</AvatarFallback>
-						</Avatar>
 						<span className="lowercase ml-3">{`${powerskill}`}</span>
 					</div>
 				);
