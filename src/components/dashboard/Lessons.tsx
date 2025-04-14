@@ -233,25 +233,25 @@ export default function Lessonn({
 		}
 	};
 
-	const onDeleteLesson = async (chapterId: string) => {
-		try {
-			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/course/delete-lesson`, {
-				chapterId,
-			});
+	// const onDeleteLesson = async (chapterId: string) => {
+	// 	try {
+	// 		const { data: responseData, error } = await callApi<ApiResponse<null>>(`/course/delete-lesson`, {
+	// 			chapterId,
+	// 		});
 
-			if (error) throw new Error(error.message);
-			if (responseData?.status === 'success') {
-				toast.success('Lesson Deleted', { description: 'The Lesson has been successfully deleted.' });
-				return true;
-			}
-			return false;
-		} catch (err) {
-			toast.error('Lesson Deletion Failed', {
-				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
-			});
-			return false;
-		}
-	};
+	// 		if (error) throw new Error(error.message);
+	// 		if (responseData?.status === 'success') {
+	// 			toast.success('Lesson Deleted', { description: 'The Lesson has been successfully deleted.' });
+	// 			return true;
+	// 		}
+	// 		return false;
+	// 	} catch (err) {
+	// 		toast.error('Lesson Deletion Failed', {
+	// 			description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+	// 		});
+	// 		return false;
+	// 	}
+	// };
 
 	// const onEditLesson = async (chapterId: string, updatedData: Partial<AddLessonType>) => {
 	// 	try {
@@ -493,7 +493,7 @@ export default function Lessonn({
 								</DropdownMenuItem>
 
 								<DropdownMenuSeparator />
-								<DropdownMenuItem
+								{/* <DropdownMenuItem
 									className="hover:cursor-pointer text-red-500"
 									onClick={async () => {
 										const success = await onDeleteLesson(row.original.id);
@@ -502,7 +502,7 @@ export default function Lessonn({
 								>
 									<DeleteIcon className=" h-4 w-4" />
 									Delete
-								</DropdownMenuItem>
+								</DropdownMenuItem> */}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					);
