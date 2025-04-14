@@ -47,6 +47,7 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React, { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 
 export default function RolePlays() {
@@ -62,6 +63,7 @@ export default function RolePlays() {
 	const skipPageResetRef = useRef(false);
 	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
+	const router = useRouter();
 
 	const {
 		register,
@@ -321,18 +323,16 @@ export default function RolePlays() {
 										className="hover:cursor-pointer"
 									>
 										<CopyIcon className=" h-4 w-4" />
-										Copy Team ID
+										Copy Role Play ID
 									</DropdownMenuItem>
 									<DropdownMenuItem
 										onClick={() => {
-											setEditingRowId(roleplay.id);
-											setEditedData(roleplay);
-											skipPageResetRef.current = true;
+											router.push(`/role-play/${roleplay.id}`);
 										}}
 										className="hover:cursor-pointer"
 									>
 										<EditIcon className=" h-4 w-4" />
-										Edit
+										Edit Role Play
 									</DropdownMenuItem>
 
 									<DropdownMenuSeparator />
