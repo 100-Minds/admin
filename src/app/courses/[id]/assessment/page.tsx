@@ -1,6 +1,6 @@
 import DashboardLayout from '../../../dashboard/layout';
 import { generatePageMetadata } from '@/components/common/PageMetaData';
-import AddAssessments from '@/components/dashboard/AddAssessments';
+import AddAssessments from '@/components/dashboard/Assessments';
 import { Metadata } from 'next';
 
 export const generateMetadata = async (props: { params: Promise<{ id: string }> }): Promise<Metadata> => {

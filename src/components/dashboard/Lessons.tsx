@@ -23,7 +23,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuSeparator,
+	//DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -253,44 +253,6 @@ export default function Lessonn({
 	// 	}
 	// };
 
-	// const onEditLesson = async (chapterId: string, updatedData: Partial<AddLessonType>) => {
-	// 	try {
-	// 		const dataToSend = {
-	// 			title: updatedData.title,
-	// 			description: updatedData.description,
-	// 		};
-
-	// 		Object.keys(dataToSend).forEach((key) => {
-	// 			if (dataToSend[key as keyof typeof dataToSend] === undefined) {
-	// 				delete (dataToSend as Record<string, unknown>)[key];
-	// 			}
-	// 		});
-
-	// 		if (Object.keys(dataToSend).length === 0) {
-	// 			toast.warning('No changes to update', { description: 'No fields were modified.' });
-	// 			return false;
-	// 		}
-
-	// 		const { data: responseData, error } = await callApi<ApiResponse<AddLessonType>>(`/course/update-lesson`, {
-	// 			chapterId,
-	// 			...dataToSend,
-	// 		});
-
-	// 		if (error) throw new Error(error.message);
-	// 		if (responseData?.status === 'success') {
-	// 			toast.success('Lesson Updated', { description: 'Lesson has been successfully updated.' });
-	// 			queryClient.invalidateQueries({ queryKey: ['lesson'] });
-	// 			return true;
-	// 		}
-	// 		return false;
-	// 	} catch (err) {
-	// 		toast.error('Lesson Update Failed', {
-	// 			description: err instanceof Error ? err.message : 'An unexpected error occurred.',
-	// 		});
-	// 		return false;
-	// 	}
-	// };
-
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file) {
@@ -359,21 +321,6 @@ export default function Lessonn({
 				},
 				cell: ({ row }) => {
 					const title = row.original.title;
-					// const isEditing = editingRowId === row.original.id;
-
-					// if (isEditing) {
-					// 	return (
-					// 		<Input
-					// 			ref={(el) => {
-					// 				inputRefs.current[row.original.id] = el;
-					// 			}}
-					// 			value={editedData.title || title}
-					// 			onChange={(e) => setEditedData({ ...editedData, title: e.target.value })}
-					// 			className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-					// 			autoFocus
-					// 		/>
-					// 	);
-					// }
 
 					return (
 						<div className="flex items-center space-x-2">
@@ -441,10 +388,7 @@ export default function Lessonn({
 			{
 				id: 'actions',
 				enableHiding: false,
-				cell: ({ row }) => {
-					const lesson = row.original;
-					console.log(lesson);
-
+				cell: () => {
 					return (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild className="hover:cursor-pointer">
@@ -456,13 +400,6 @@ export default function Lessonn({
 							<DropdownMenuContent align="end">
 								<DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-								{/* <DropdownMenuItem
-									onClick={() => navigator.clipboard.writeText(lesson.id)}
-									className="hover:cursor-pointer"
-								>
-									<CopyIcon className=" h-4 w-4" />
-									Copy Course ID
-								</DropdownMenuItem> */}
 								{/* <DropdownMenuItem
 											onClick={() => {
 												setEditingRowId(lesson.id);
@@ -493,7 +430,7 @@ export default function Lessonn({
 									Add Quiz
 								</DropdownMenuItem>
 
-								<DropdownMenuSeparator />
+								{/* <DropdownMenuSeparator /> */}
 								{/* <DropdownMenuItem
 									className="hover:cursor-pointer text-red-500"
 									onClick={async () => {
@@ -556,21 +493,9 @@ export default function Lessonn({
 							<label htmlFor="title" className="text-sm font-medium text-gray-700">
 								Chapter title<span className="text-red-500">*</span>
 							</label>
-							{/* <Input
-								{...register('title')}
-								//autoFocus
-								type="text"
-								id="title"
-								aria-label="Title"
-								placeholder="Title"
-								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
-									errors.title && 'border-red-500 ring-2 ring-red-500'
-								}`}
-							/> */}
 							<Input
 								{...register('title')}
 								ref={(e) => {
-									// This handles both react-hook-form's ref and our own ref
 									register('title').ref(e);
 									titleInputRef.current = e;
 								}}
@@ -609,14 +534,7 @@ export default function Lessonn({
 								Upload Lesson Video <span className="text-red-500">*</span>
 							</label>
 							<div className="relative">
-								<input
-									type="file"
-									id="lessonVideo"
-									accept="video/*"
-									//{...register('lessonVideo', { required: 'Lesson video is required' })}
-									onChange={handleFileChange}
-									className="hidden"
-								/>
+								<input type="file" id="lessonVideo" accept="video/*" onChange={handleFileChange} className="hidden" />
 								<label
 									htmlFor="lessonVideo"
 									className="block w-full border border-gray-300 rounded-lg shadow-sm bg-[#F8F8F8] cursor-pointer p-3 text-[13px] text-gray-500 min-h-[45px] text-center"
@@ -651,25 +569,6 @@ export default function Lessonn({
 						</Button>
 					</form>
 				</div>
-
-				{/* <div className="mb-2 bg-white lg:w-[50%] md:w-full">
-					<Select onValueChange={handleCourseChange} disabled={courseLoading} key={selectKey}>
-						<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-							<SelectValue placeholder={courseLoading ? 'Loading courses...' : 'Choose a course'} />
-						</SelectTrigger>
-
-						<SelectContent
-							position="popper"
-							className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-						>
-							{courses?.map((course) => (
-								<SelectItem key={course.id} value={course.id} className="w-full">
-									{course.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div> */}
 
 				{loadingLessons ? (
 					<div className="w-full bg-white rounded-md px-6 py-6">

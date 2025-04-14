@@ -51,6 +51,7 @@ import {
 import React from 'react';
 import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 import { isValidUUID } from '@/lib/helpers/isValidUUID';
+import { useRouter } from 'next/navigation';
 
 export default function AddAssessments({ courseId }: { courseId: string }) {
 	const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +66,7 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 	const skipPageResetRef = useRef(true);
 	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
+	const router = useRouter();
 
 	const {
 		register,
@@ -110,66 +112,6 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 			});
 		}
 	}, [queryError]);
-
-	// const {
-	// 	data: courses,
-	// 	isLoading: courseLoading,
-	// 	error: courseQueryError,
-	// } = useQuery<Course[], Error>({
-	// 	queryKey: ['course'],
-	// 	queryFn: async () => {
-	// 		const { data: responseData, error } = await callApi<ApiResponse<Course[]>>('/course/get-courses');
-	// 		if (error) {
-	// 			throw new Error(error.message || 'Something went wrong while fetching courses.');
-	// 		}
-	// 		if (!responseData?.data) {
-	// 			throw new Error('No course data returned');
-	// 		}
-	// 		//toast.success('Courses Fetched', { description: 'Successfully fetched courses.' });
-	// 		return responseData.data;
-	// 	},
-	// });
-
-	// useEffect(() => {
-	// 	if (courseQueryError) {
-	// 		const errorMessage = courseQueryError.message || 'An unexpected error occurred while fetching courses.';
-	// 		toast.error('Failed to fetch courses', {
-	// 			description: errorMessage,
-	// 		});
-	// 	}
-	// }, [courseQueryError]);
-
-	// const {
-	// 	data: chapters,
-	// 	isLoading: chapterLoading,
-	// 	error: chapterQueryError,
-	// } = useQuery<Chapter[], Error>({
-	// 	queryKey: ['chapter', courseId],
-	// 	queryFn: async () => {
-	// 		const { data: responseData, error } = await callApi<ApiResponse<Chapter[]>>(
-	// 			`/course/get-chapters?courseId=${courseId}`
-	// 		);
-	// 		if (error) {
-	// 			throw new Error(error.message || 'Something went wrong while fetching course chapters.');
-	// 		}
-	// 		if (!responseData?.data) {
-	// 			throw new Error('No course chapter data returned');
-	// 		}
-	// 		setSelectKey2((prev) => prev + 1);
-	// 		//toast.success('Chapters Fetched', { description: 'Successfully fetched course chapters.' });
-	// 		return responseData.data;
-	// 	},
-	// 	enabled: !!courseId && isValidUUID(courseId),
-	// });
-
-	// useEffect(() => {
-	// 	if (chapterQueryError) {
-	// 		const errorMessage = chapterQueryError.message || 'An unexpected error occurred while fetching course chapters.';
-	// 		toast.error('Failed to fetch chapters', {
-	// 			description: errorMessage,
-	// 		});
-	// 	}
-	// }, [chapterQueryError]);
 
 	const onSubmit: SubmitHandler<AddQuizType> = async (data: AddQuizType) => {
 		try {
@@ -271,18 +213,6 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 			inputRefs.current[editingRowId]?.focus();
 		}
 	}, [editingRowId]);
-
-	// const handleCourseChange = (value: string) => {
-	// 	// if (value !== courseId) {
-	// 	setCourseId(value);
-	// 	setValue('courseId', value, { shouldValidate: true });
-	// 	//}
-	// };
-	// const handleChapterChange = debounce((value: string) => {
-	// 	if (value !== chapterId) {
-	// 		setChapterId(value);
-	// 	}
-	// }, 300);
 
 	const columns: ColumnDef<Assessment>[] = React.useMemo(
 		() => [
@@ -567,14 +497,12 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 										</DropdownMenuItem>
 										<DropdownMenuItem
 											onClick={() => {
-												setEditingRowId(assessment.id);
-												setEditedData(assessment);
-												skipPageResetRef.current = true;
+												router.push(`/courses/${courseId}/assessment/${assessment.id}`);
 											}}
 											className="hover:cursor-pointer"
 										>
 											<EditIcon className=" h-4 w-4" />
-											Edit
+											Edit Assessment
 										</DropdownMenuItem>
 
 										<DropdownMenuSeparator />

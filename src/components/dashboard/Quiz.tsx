@@ -51,6 +51,7 @@ import {
 import React from 'react';
 import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
 import { isValidUUID } from '@/lib/helpers/isValidUUID';
+import { useRouter } from 'next/navigation';
 
 export default function Quizz({ chapterId, courseId }: { chapterId: string; courseId: string }) {
 	const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +66,7 @@ export default function Quizz({ chapterId, courseId }: { chapterId: string; cour
 	const skipPageResetRef = useRef(true);
 	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
+	const router = useRouter();
 
 	const {
 		register,
@@ -566,14 +568,12 @@ export default function Quizz({ chapterId, courseId }: { chapterId: string; cour
 										</DropdownMenuItem>
 										<DropdownMenuItem
 											onClick={() => {
-												setEditingRowId(quiz.id);
-												setEditedData(quiz);
-												skipPageResetRef.current = true;
+												router.push(`/courses/${courseId}/lesson/${quiz.id}`);
 											}}
 											className="hover:cursor-pointer"
 										>
 											<EditIcon className=" h-4 w-4" />
-											Edit
+											Edit Quiz
 										</DropdownMenuItem>
 
 										<DropdownMenuSeparator />
