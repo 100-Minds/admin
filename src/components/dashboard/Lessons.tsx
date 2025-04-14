@@ -50,7 +50,7 @@ import React from 'react';
 //import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { isValidUUID } from '@/lib/helpers/isValidUUID';
 import { useRouter } from 'next/navigation';
-import { EditIcon, DeleteIcon } from '../common';
+import { EditIcon } from '../common';
 
 export default function Lessonn({
 	courseId,
@@ -442,7 +442,8 @@ export default function Lessonn({
 				id: 'actions',
 				enableHiding: false,
 				cell: ({ row }) => {
-					//const lesson = row.original;
+					const lesson = row.original;
+					console.log(lesson);
 
 					return (
 						<DropdownMenu>

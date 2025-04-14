@@ -119,6 +119,18 @@ export type Quiz = {
 	created_at: Date;
 };
 
+export type Assessment = {
+	id: string;
+	question: string;
+	optionA: string;
+	optionB: string;
+	optionC: string;
+	optionD: string;
+	isCorrect: string;
+	courseId: string;
+	created_at: Date;
+};
+
 export type SessionData = User[];
 export type PowerSkillData = PowerSkill[];
 export type RolePlayData = RolePlay[];
@@ -129,6 +141,7 @@ export type UploadLessonData = UploadLesson;
 export type JourneyData = Journey[];
 export type TeamData = Team[];
 export type QuizData = Quiz[];
+export type AssessmentData = Assessment[];
 export type AdminCourseData = AdminCourse[];
 
 export type ApiResponse<T = Record<string, unknown>> = {

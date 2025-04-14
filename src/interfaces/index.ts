@@ -9,6 +9,7 @@ export type {
 	Team,
 	Quiz,
 	AdminCourse,
+	Assessment,
 } from './ApiResponses';
 export type {
 	ForgotPasswordProps,

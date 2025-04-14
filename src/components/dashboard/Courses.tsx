@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { FormErrorMessage, OpenBookIcon } from '../common';
+import { FormErrorMessage, OpenBookIcon, QuizIcon } from '../common';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
 import { format } from 'date-fns';
@@ -409,6 +409,15 @@ export default function Coursess() {
 							>
 								<OpenBookIcon className="h-4 w-4" />
 								Add Lesson
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => {
+									router.push(`/courses/${courses.id}/assessment`);
+								}}
+								className="hover:cursor-pointer"
+							>
+								<QuizIcon className="h-4 w-4" />
+								Add assessment
 							</DropdownMenuItem>
 
 							<DropdownMenuSeparator />
