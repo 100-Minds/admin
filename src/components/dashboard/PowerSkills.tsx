@@ -46,7 +46,8 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React from 'react';
-import { EditIcon, CopyIcon, DeleteIcon, SaveIcon, XIcon } from '../common';
+import { EditIcon, CopyIcon, DeleteIcon } from '../common';
+import { useRouter } from 'next/navigation';
 
 export default function PowerSkilll() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -55,11 +56,9 @@ export default function PowerSkilll() {
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [error, setError] = React.useState<string | null>(null);
-	const [editingRowId, setEditingRowId] = useState<string | null>(null);
-	const [editedData, setEditedData] = useState<Partial<PowerSkill>>({});
 	const skipPageResetRef = useRef(false);
-	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
+	const router = useRouter();
 
 	const {
 		register,
@@ -146,49 +145,6 @@ export default function PowerSkilll() {
 		}
 	};
 
-	const onEditSkill = async (skillId: string, updatedData: Partial<PowerSkill>) => {
-		try {
-			const dataToSend = {
-				skill: updatedData.powerskill,
-			};
-
-			Object.keys(dataToSend).forEach((key) => {
-				if (dataToSend[key as keyof typeof dataToSend] === undefined) {
-					delete (dataToSend as Record<string, unknown>)[key];
-				}
-			});
-
-			if (Object.keys(dataToSend).length === 0) {
-				toast.warning('No changes to update', { description: 'No fields were modified.' });
-				return false;
-			}
-
-			const { data: responseData, error } = await callApi<ApiResponse<PowerSkillData>>(`/skill/update-skill`, {
-				skillId,
-				...dataToSend,
-			});
-
-			if (error) throw new Error(error.message);
-			if (responseData?.status === 'success') {
-				toast.success('Power skill Updated', { description: 'Power skill has been successfully updated.' });
-				queryClient.invalidateQueries({ queryKey: ['skills'] });
-				return true;
-			}
-			return false;
-		} catch (err) {
-			toast.error('Power Skill Update Failed', {
-				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
-			});
-			return false;
-		}
-	};
-
-	useEffect(() => {
-		if (editingRowId && inputRefs.current[editingRowId]) {
-			inputRefs.current[editingRowId]?.focus();
-		}
-	}, [editingRowId]);
-
 	const columns: ColumnDef<PowerSkill>[] = [
 		{
 			id: 'select',
@@ -221,21 +177,6 @@ export default function PowerSkilll() {
 			},
 			cell: ({ row }) => {
 				const powerskill = row.original.powerskill;
-				const isEditing = editingRowId === row.original.id;
-
-				if (isEditing) {
-					return (
-						<Input
-							ref={(el) => {
-								inputRefs.current[row.original.id] = el;
-							}}
-							value={editedData.powerskill || powerskill}
-							onChange={(e) => setEditedData({ ...editedData, powerskill: e.target.value })}
-							className="min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
-							autoFocus
-						/>
-					);
-				}
 
 				return (
 					<div className="flex items-center space-x-2">
@@ -269,7 +210,6 @@ export default function PowerSkilll() {
 			enableHiding: false,
 			cell: ({ row }) => {
 				const skill = row.original;
-				const isEditing = editingRowId === skill.id;
 
 				return (
 					<DropdownMenu>
@@ -298,67 +238,34 @@ export default function PowerSkilll() {
 								Delete
 							</DropdownMenuItem> */}
 
-							{!isEditing ? (
-								<>
-									<DropdownMenuItem
-										onClick={() => navigator.clipboard.writeText(skill.id)}
-										className="hover:cursor-pointer"
-									>
-										<CopyIcon className=" h-4 w-4" />
-										Copy Skill ID
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => {
-											setEditingRowId(skill.id);
-											setEditedData(skill);
-											skipPageResetRef.current = true;
-										}}
-										className="hover:cursor-pointer"
-									>
-										<EditIcon className=" h-4 w-4" />
-										Edit
-									</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => navigator.clipboard.writeText(skill.id)}
+								className="hover:cursor-pointer"
+							>
+								<CopyIcon className=" h-4 w-4" />
+								Copy Skill ID
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => {
+									router.push(`/power-skills/${skill.id}`);
+								}}
+								className="hover:cursor-pointer"
+							>
+								<EditIcon className=" h-4 w-4" />
+								Edit Skill
+							</DropdownMenuItem>
 
-									<DropdownMenuSeparator />
-									<DropdownMenuItem
-										className="hover:cursor-pointer text-red-500"
-										onClick={async () => {
-											const success = await onDeleteSkill(row.original.id);
-											if (success) await queryClient.invalidateQueries({ queryKey: ['skills'] });
-										}}
-									>
-										<DeleteIcon className=" h-4 w-4" />
-										Delete
-									</DropdownMenuItem>
-								</>
-							) : (
-								<>
-									<DropdownMenuItem
-										onClick={async () => {
-											const success = await onEditSkill(skill.id, editedData);
-											if (success) {
-												setEditedData({});
-												setEditingRowId(null);
-												skipPageResetRef.current = true;
-											}
-										}}
-										className="hover:cursor-pointer"
-									>
-										<SaveIcon className=" h-4 w-4" />
-										Save
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => {
-											setEditingRowId(null);
-											setEditedData({});
-										}}
-										className="hover:cursor-pointer text-red-500"
-									>
-										<XIcon className=" h-4 w-4" />
-										Cancel
-									</DropdownMenuItem>
-								</>
-							)}
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								className="hover:cursor-pointer text-red-500"
+								onClick={async () => {
+									const success = await onDeleteSkill(row.original.id);
+									if (success) await queryClient.invalidateQueries({ queryKey: ['skills'] });
+								}}
+							>
+								<DeleteIcon className=" h-4 w-4" />
+								Delete
+							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);

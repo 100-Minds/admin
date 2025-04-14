@@ -24,7 +24,6 @@ export type User = {
 export type PowerSkill = {
 	id: string;
 	powerskill: string;
-	userId: string;
 	isDeleted: boolean;
 	created_at: string;
 };
@@ -33,7 +32,6 @@ export type RolePlay = {
 	id: string;
 	scenario: string;
 	scenarioImage: string;
-	userId: string;
 	isDeleted: boolean;
 	created_at: string;
 };
@@ -41,7 +39,6 @@ export type RolePlay = {
 export type Module = {
 	id: string;
 	name: string;
-	userId: string;
 	isDeleted: boolean;
 	created_at: string;
 };
@@ -52,7 +49,6 @@ export type Course = {
 	courseImage: string;
 	courseResources: string | null;
 	status: string;
-	userId: string;
 	moduleId: string;
 	scenarioName: string | null;
 	scenarioId: string | null;

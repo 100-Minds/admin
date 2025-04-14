@@ -166,7 +166,7 @@ export default function QuizEdit({ quizId }: { quizId: string }) {
 
 				<form className="space-y-4 relative">
 					<div>
-						<label htmlFor="course" className="text-sm font-medium text-gray-700">
+						<label htmlFor="question" className="text-sm font-medium text-gray-700">
 							Question
 						</label>
 						<Input
@@ -185,7 +185,7 @@ export default function QuizEdit({ quizId }: { quizId: string }) {
 					</div>
 
 					<div className="mt-4">
-						<label htmlFor="course" className="text-sm font-medium text-gray-700">
+						<label htmlFor="optionA" className="text-sm font-medium text-gray-700">
 							Option A
 						</label>
 						<Input
@@ -203,7 +203,7 @@ export default function QuizEdit({ quizId }: { quizId: string }) {
 					</div>
 
 					<div className="mt-4">
-						<label htmlFor="course" className="text-sm font-medium text-gray-700">
+						<label htmlFor="optionB" className="text-sm font-medium text-gray-700">
 							Option B
 						</label>
 						<Input
@@ -221,7 +221,7 @@ export default function QuizEdit({ quizId }: { quizId: string }) {
 					</div>
 
 					<div className="mt-4">
-						<label htmlFor="course" className="text-sm font-medium text-gray-700">
+						<label htmlFor="optionC" className="text-sm font-medium text-gray-700">
 							Option C
 						</label>
 						<Input
@@ -239,7 +239,7 @@ export default function QuizEdit({ quizId }: { quizId: string }) {
 					</div>
 
 					<div className="mt-4">
-						<label htmlFor="course" className="text-sm font-medium text-gray-700">
+						<label htmlFor="optionD" className="text-sm font-medium text-gray-700">
 							Option D
 						</label>
 						<Input
