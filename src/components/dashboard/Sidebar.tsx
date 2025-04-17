@@ -11,7 +11,6 @@ import {
 	ThunderIcon,
 	RolePlayIcon,
 	BookIcon,
-	OpenBookIcon,
 	SettingsIcon,
 	XIcon,
 	//QuizIcon,
@@ -27,7 +26,6 @@ const menuItems = [
 	{ name: 'Modules', icon: ModuleIcon, path: '/modules' },
 	{ name: 'Courses', icon: BookIcon, path: '/courses' },
 	// { name: 'Quiz', icon: QuizIcon, path: '/quiz' },
-	{ name: 'Journey', icon: OpenBookIcon, path: '/journey' },
 	{ name: 'Teams', icon: UsersIcon, path: '/team' },
 	{ name: 'Settings', icon: SettingsIcon, path: '/settings' },
 ];
