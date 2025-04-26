@@ -5,7 +5,7 @@ import { Assessment, Quiz, QuizData } from '@/interfaces/ApiResponses';
 import { AddQuizType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useRef } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { FormErrorMessage } from '../common';
@@ -18,7 +18,8 @@ import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+//import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import Select from 'react-select';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -62,7 +63,6 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 	const [error, setError] = React.useState<string | null>(null);
 	const [editingRowId, setEditingRowId] = useState<string | null>(null);
 	const [editedData, setEditedData] = useState<Partial<Quiz>>({});
-	const [selectKey3, setSelectKey3] = useState(0);
 	const skipPageResetRef = useRef(true);
 	const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 	const queryClient = useQueryClient();
@@ -72,7 +72,7 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 		register,
 		handleSubmit,
 		reset,
-		setValue,
+		control,
 		//watch,
 		formState: { errors, isSubmitting },
 	} = useForm<AddQuizType>({
@@ -123,6 +123,7 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 				optionB: data.optionB,
 				optionC: data.optionC,
 				optionD: data.optionD,
+				optionE: data.optionE,
 				isCorrect: data.isCorrect,
 				courseId,
 			});
@@ -141,7 +142,6 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 			});
 		} finally {
 			setIsLoading(false);
-			setSelectKey3((prev) => prev + 1);
 			reset();
 		}
 	};
@@ -174,6 +174,7 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 				optionB: updatedData.optionB,
 				optionC: updatedData.optionC ?? '',
 				optionD: updatedData.optionD ?? '',
+				optionE: updatedData.optionE ?? '',
 				isCorrect: updatedData.isCorrect,
 			};
 
@@ -426,27 +427,27 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 					const isEditing = editingRowId === assessment.id;
 
 					if (isEditing) {
-						return (
-							<Select
-								value={editedData.isCorrect || assessment.isCorrect}
-								onValueChange={(value) => setEditedData({ ...editedData, isCorrect: value })}
-								//disabled={scenarioLoading}
-							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue placeholder="Select a correct option" />
-								</SelectTrigger>
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-0 bg-white shadow-md border border-gray-300 rounded-md"
-									avoidCollisions={false}
-								>
-									<SelectItem value="optionA">Option A</SelectItem>
-									<SelectItem value="optionB">Option B</SelectItem>
-									<SelectItem value="optionC">Option C</SelectItem>
-									<SelectItem value="optionD">Option D</SelectItem>
-								</SelectContent>
-							</Select>
-						);
+						// return (
+						// 	<Select
+						// 		value={editedData.isCorrect || assessment.isCorrect}
+						// 		onValueChange={(value) => setEditedData({ ...editedData, isCorrect: value })}
+						// 		//disabled={scenarioLoading}
+						// 	>
+						// 		<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
+						// 			<SelectValue placeholder="Select a correct option" />
+						// 		</SelectTrigger>
+						// 		<SelectContent
+						// 			position="popper"
+						// 			className="max-h-60 overflow-y-auto z-0 bg-white shadow-md border border-gray-300 rounded-md"
+						// 			avoidCollisions={false}
+						// 		>
+						// 			<SelectItem value="optionA">Option A</SelectItem>
+						// 			<SelectItem value="optionB">Option B</SelectItem>
+						// 			<SelectItem value="optionC">Option C</SelectItem>
+						// 			<SelectItem value="optionD">Option D</SelectItem>
+						// 		</SelectContent>
+						// 	</Select>
+						// );
 					}
 
 					return <span className="ml-3">{`${assessment.isCorrect}`}</span>;
@@ -585,6 +586,14 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 		[table]
 	);
 
+	const options = [
+		{ value: 'optionA', label: 'Option A' },
+		{ value: 'optionB', label: 'Option B' },
+		{ value: 'optionC', label: 'Option C' },
+		{ value: 'optionD', label: 'Option D' },
+		{ value: 'optionE', label: 'Option E' },
+	];
+
 	return (
 		<>
 			<div className="flex flex-col w-full">
@@ -593,55 +602,7 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 						<h2 className="text-center text-xl font-semibold text-gray-900 mt-8">Create Course Assessment</h2>
 					</div>
 					<form className="space-y-4 relative" onSubmit={handleSubmit(onSubmit)}>
-						{/* <div>
-							<label className="text-sm font-medium text-gray-700">
-								Select Course <span className="text-red-500">*</span>
-							</label>
-							<Select onValueChange={handleCourseChange} disabled={courseLoading} key={selectKey}>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue placeholder={courseLoading ? 'Loading courses...' : 'Choose a course'} />
-								</SelectTrigger>
-
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-								>
-									{courses?.map((course) => (
-										<SelectItem key={course.id} value={course.id} className="w-full">
-											{course.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{errors.courseId && <FormErrorMessage error={errors.courseId} errorMsg={errors.courseId.message} />}
-						</div>
-
-						<div className="mt-4">
-							<label className="text-sm font-medium text-gray-700">
-								Select Chapter <span className="text-red-500">*</span>
-							</label>
-							<Select
-								onValueChange={(value) => setValue('chapterId', value, { shouldValidate: true })}
-								disabled={chapterLoading}
-								key={selectKey2}
-							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue placeholder={chapterLoading ? 'Loading chapters...' : 'Choose a chapter'} />
-								</SelectTrigger>
-
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-								>
-									{chapters?.map((chapter) => (
-										<SelectItem key={chapter.id} value={chapter.id} className="w-full">
-											{chapter.title}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{errors.chapterId && <FormErrorMessage error={errors.chapterId} errorMsg={errors.chapterId.message} />}
-						</div> */}
+						
 
 						<div className="mt-4">
 							<label htmlFor="name" className="text-sm font-medium text-gray-700">
@@ -729,28 +690,86 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 						</div>
 
 						<div className="mt-4">
-							<label htmlFor="isCorrect" className="text-sm font-medium text-gray-700">
-								Correct Option<span className="text-red-500">*</span>
+							<label htmlFor="optionD" className="text-sm font-medium text-gray-700">
+								Option E
 							</label>
-							<Select
-								key={selectKey3}
-								onValueChange={(value) => setValue('isCorrect', value, { shouldValidate: true })}
-							>
-								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-									<SelectValue placeholder="Select a correct option" />
-								</SelectTrigger>
-								<SelectContent
-									position="popper"
-									className="max-h-60 overflow-y-auto z-0 bg-white shadow-md border border-gray-300 rounded-md"
-									avoidCollisions={false}
-								>
-									<SelectItem value="optionA">Option A</SelectItem>
-									<SelectItem value="optionB">Option B</SelectItem>
-									<SelectItem value="optionC">Option C</SelectItem>
-									<SelectItem value="optionD">Option D</SelectItem>
-								</SelectContent>
-							</Select>
-							{errors.isCorrect && <FormErrorMessage error={errors.isCorrect} errorMsg={errors.isCorrect.message} />}
+							<Input
+								{...register('optionE')}
+								type="text"
+								id="optionE"
+								aria-label="Option E"
+								placeholder="Option E"
+								className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+									errors.optionD && 'border-red-500 ring-2 ring-red-500'
+								}`}
+							/>
+							{errors.optionE && <FormErrorMessage error={errors.optionE} errorMsg={errors.optionE.message} />}
+						</div>
+
+						<div className="mt-4">
+							<Controller
+								control={control}
+								name="isCorrect"
+								render={({ field }) => (
+									<div className="mt-4">
+										<label className="text-sm font-medium text-gray-700">
+											Correct Option<span className="text-red-500">*</span>
+										</label>
+										<Select
+											{...field}
+											isMulti
+											options={options}
+											className="mt-2"
+											classNamePrefix="react-select"
+											onChange={(selected) => {
+												const values = selected.map((s) => s.value);
+												field.onChange(values);
+											}}
+											value={options.filter((opt) => (field.value as string[])?.includes(opt.value))}
+											placeholder="Select correct option(s)"
+											styles={{
+												control: (base) => ({
+													...base,
+													minHeight: '45px',
+													backgroundColor: 'white', // Match your input background
+													borderColor: '#d1d5db', // Tailwind gray-300
+													boxShadow: 'none',
+													'&:hover': {
+														borderColor: '#3b82f6', // Tailwind blue-500 for hover
+													},
+													fontSize: '14px', // Text size
+												}),
+												placeholder: (base) => ({
+													...base,
+													fontSize: '14px', // Make placeholder smaller
+													color: '#9ca3af', // Tailwind gray-400
+												}),
+												multiValue: (base) => ({
+													...base,
+													backgroundColor: '#e0f2fe', // Light blue bg for selected items (optional)
+													borderRadius: '6px',
+												}),
+												multiValueLabel: (base) => ({
+													...base,
+													fontSize: '12px',
+													color: '#2563eb', // Tailwind blue-600 for text
+												}),
+												multiValueRemove: (base) => ({
+													...base,
+													color: '#2563eb',
+													':hover': {
+														backgroundColor: '#bfdbfe', // Lighter on hover
+														color: '#1d4ed8',
+													},
+												}),
+											}}
+										/>
+										{errors.isCorrect && (
+											<FormErrorMessage error={errors.isCorrect} errorMsg={errors.isCorrect.message} />
+										)}
+									</div>
+								)}
+							/>
 						</div>
 
 						<Button
@@ -763,46 +782,6 @@ export default function AddAssessments({ courseId }: { courseId: string }) {
 						</Button>
 					</form>
 				</div>
-
-				{/* <div className="mb-2 flex flex-col md:flex-row space-x-5 w-full">
-					<div className="bg-white w-full mb-3 md:mb-0">
-						<Select onValueChange={(value) => setCourseId(value)} disabled={courseLoading}>
-							<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-								<SelectValue placeholder={courseLoading ? 'Loading courses...' : 'Choose a course'} />
-							</SelectTrigger>
-
-							<SelectContent
-								position="popper"
-								className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-							>
-								{courses?.map((course) => (
-									<SelectItem key={course.id} value={course.id} className="w-full">
-										{course.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-
-					<div className="bg-white w-full">
-						<Select onValueChange={handleChapterChange} disabled={chapterLoading}>
-							<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-								<SelectValue placeholder={chapterLoading ? 'Loading chapters...' : 'Choose a chapter'} />
-							</SelectTrigger>
-
-							<SelectContent
-								position="popper"
-								className="max-h-60 overflow-y-auto z-50 bg-white shadow-md border border-gray-300 rounded-md"
-							>
-								{chapters?.map((chapter) => (
-									<SelectItem key={chapter.id} value={chapter.id} className="w-full">
-										{chapter.title}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-				</div> */}
 
 				{loading ? (
 					<div className="w-full bg-white rounded-md px-6 py-6">

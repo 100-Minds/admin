@@ -29,6 +29,7 @@ export default function LessonEditForm({ courseId }: { courseId: string }) {
 	const [activeSection, setActiveSection] = useState<'quiz' | null>(null);
 	const searchParams = useSearchParams();
 	const queryClient = useQueryClient();
+	const lessonId = localStorage.getItem('lessonId');
 
 	const {
 		//register,
@@ -81,7 +82,7 @@ export default function LessonEditForm({ courseId }: { courseId: string }) {
 			});
 		}
 	}, [lessonError]);
-
+	
 	useEffect(() => {
 		if (lessons && lessons[0]) {
 			if (lessons[0].chapterResources) {
@@ -448,7 +449,7 @@ export default function LessonEditForm({ courseId }: { courseId: string }) {
 					Create Quiz
 				</CollapsibleTrigger>
 				<CollapsibleContent className="w-full max-h-96 overflow-y-auto">
-					<Quizz chapterId={lessons?.[0]?.id} courseId={lessons?.[0]?.courseId} />
+					<Quizz chapterId={lessonId || ''} courseId={lessons?.[0]?.courseId} />
 				</CollapsibleContent>
 			</Collapsible>
 		</div>

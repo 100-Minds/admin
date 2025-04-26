@@ -24,6 +24,8 @@ export type User = {
 export type PowerSkill = {
 	id: string;
 	powerskill: string;
+	category: string;
+	skillImage: string;
 	isDeleted: boolean;
 	created_at: string;
 };
@@ -102,6 +104,7 @@ export type Team = {
 	created_at: string;
 };
 
+export type QuizOption = 'optionA' | 'optionB' | 'optionC' | 'optionD' | 'optionE';
 export type Quiz = {
 	id: string;
 	question: string;
@@ -109,7 +112,8 @@ export type Quiz = {
 	optionB: string;
 	optionC: string;
 	optionD: string;
-	isCorrect: string;
+	optionE: string;
+	isCorrect: QuizOption[];
 	chapterId: string;
 	courseId: string;
 	created_at: Date;
@@ -122,7 +126,8 @@ export type Assessment = {
 	optionB: string;
 	optionC: string;
 	optionD: string;
-	isCorrect: string;
+	optionE: string;
+	isCorrect: QuizOption[];
 	courseId: string;
 	created_at: Date;
 };

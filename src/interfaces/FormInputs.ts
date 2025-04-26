@@ -34,6 +34,8 @@ export type OtpVerificationProps = {
 
 export type AddPowerSkillProps = {
 	skill: string;
+	skillImage: File | null;
+	category: string;
 };
 
 export type AddRolePlayProps = {
@@ -63,7 +65,7 @@ export type AddLessonProps = {
 	fileType: string;
 	fileSize: number;
 	videoLength: string;
-	chapterResources?:  File | null;
+	chapterResources?: File | null;
 };
 
 export type AddJourneyProps = {
@@ -93,11 +95,14 @@ export type UpdateOrganizationProps = {
 	organizationDescription?: string;
 };
 
+export type QuizOption = 'optionA' | 'optionB' | 'optionC' | 'optionD' | 'optionE';
+
 export type AddQuizProps = {
 	question: string;
 	optionA: string;
 	optionB: string;
 	optionC: string | null;
 	optionD: string | null;
-	isCorrect: string;
+	optionE: string | null;
+	isCorrect: QuizOption[];
 };

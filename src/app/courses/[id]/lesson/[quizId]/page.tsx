@@ -4,18 +4,18 @@ import QuizEditForm from '@/components/dashboard/QuizEditForm';
 import { Metadata } from 'next';
 
 export const generateMetadata = async (props: {
-	params: Promise<{ courseId: string; quizId: string }>;
+	params: Promise<{ id: string; lessonId: string; quizId: string }>;
 }): Promise<Metadata> => {
-	const { courseId, quizId } = await props.params;
+	const { id, quizId, lessonId } = await props.params;
 
 	return generatePageMetadata({
 		title: `Edit QuizId - 100 Minds`,
 		content: `Edit Quiz details with 100 Minds Dashboard`,
-		url: `https://admin-mmyv.onrender.com/courses/${courseId}/lesson/${quizId}`,
+		url: `https://admin-mmyv.onrender.com/courses/${id}/lesson/${lessonId}/quiz/${quizId}`,
 	});
 };
 
-export default async function EditQuiz(props: { params: Promise<{ courseId: string; quizId: string }> }) {
+export default async function EditQuiz(props: { params: Promise<{ id: string; lessonId: string; quizId: string }> }) {
 	const { quizId } = await props.params;
 
 	return (

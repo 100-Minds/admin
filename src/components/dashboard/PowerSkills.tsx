@@ -16,6 +16,7 @@ import debounce from 'lodash/debounce';
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -46,8 +47,9 @@ import {
 	PaginationPrevious,
 } from '@/components/ui/pagination';
 import React from 'react';
-import { EditIcon, CopyIcon, DeleteIcon } from '../common';
-import { useRouter } from 'next/navigation';
+import { CopyIcon, DeleteIcon } from '../common';
+//import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 
 export default function PowerSkilll() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -56,14 +58,17 @@ export default function PowerSkilll() {
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [error, setError] = React.useState<string | null>(null);
+	const [fileName, setFileName] = useState<string | null>(null);
 	const skipPageResetRef = useRef(false);
+	const [selectKey, setSelectKey] = useState(0);
 	const queryClient = useQueryClient();
-	const router = useRouter();
+	//const router = useRouter();
 
 	const {
 		register,
 		handleSubmit,
 		reset,
+		setValue,
 		formState: { errors, isSubmitting },
 	} = useForm<AddPowerSkillType>({
 		resolver: zodResolver(zodValidator('powerSkill')!),
@@ -103,9 +108,19 @@ export default function PowerSkilll() {
 	const onSubmit: SubmitHandler<AddPowerSkillType> = async (data: AddPowerSkillType) => {
 		try {
 			setIsLoading(true);
-			const { data: responseData, error } = await callApi<ApiResponse<PowerSkillData>>('/skill/create-skill', {
-				skill: data.skill,
-			});
+			if (!fileName) {
+				setFileName(null);
+				throw new Error('Please upload a valid video file.');
+			}
+
+			const formData = new FormData();
+			formData.append('skill', data.skill);
+			if (data.skillImage) {
+				formData.append('skillImage', data.skillImage);
+			}
+			formData.append('category', data.category);
+
+			const { data: responseData, error } = await callApi<ApiResponse<PowerSkillData>>('/skill/create-skill', formData);
 
 			if (error) {
 				throw new Error(error.message);
@@ -113,14 +128,17 @@ export default function PowerSkilll() {
 
 			if (responseData?.status === 'success') {
 				toast.success('Power Skill Created', { description: 'The power skill has been added successfully.' });
+				setFileName(null);
 				queryClient.invalidateQueries({ queryKey: ['skills'] });
 			}
 		} catch (err) {
 			toast.error('Skill Creation Failed', {
 				description: err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.',
 			});
+			setFileName(null);
 		} finally {
 			setIsLoading(false);
+			setSelectKey((prev) => prev + 1);
 			reset();
 		}
 	};
@@ -142,6 +160,24 @@ export default function PowerSkilll() {
 				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
 			});
 			return false;
+		}
+	};
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			setValue('skillImage', file, { shouldValidate: true });
+			setFileName(file.name);
+		}
+	};
+
+	const removeFile = () => {
+		setValue('skillImage', null, { shouldValidate: true });
+		setFileName(null);
+
+		const fileInput = document.getElementById('skillImage') as HTMLInputElement;
+		if (fileInput) {
+			fileInput.value = '';
 		}
 	};
 
@@ -177,14 +213,40 @@ export default function PowerSkilll() {
 			},
 			cell: ({ row }) => {
 				const powerskill = row.original.powerskill;
+				const photo = row.original.skillImage;
 
 				return (
 					<div className="flex items-center space-x-2">
+						<Avatar>
+							<video src={photo} className="object-cover w-full h-full" autoPlay loop muted />
+							<AvatarFallback>PS</AvatarFallback>
+						</Avatar>
 						<span className="lowercase ml-3">{`${powerskill}`}</span>
 					</div>
 				);
 			},
 			accessorFn: (row) => `${row.powerskill}`,
+		},
+		{
+			id: 'category',
+			header: ({ column }) => {
+				return (
+					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+						Category
+						<ArrowUpDown />
+					</Button>
+				);
+			},
+			cell: ({ row }) => {
+				const category = row.original.category;
+
+				return (
+					<div className="flex items-center space-x-2">
+						<span className="lowercase ml-3">{`${category}`}</span>
+					</div>
+				);
+			},
+			accessorFn: (row) => `${row.category}`,
 		},
 		{
 			accessorKey: 'id',
@@ -245,7 +307,7 @@ export default function PowerSkilll() {
 								<CopyIcon className=" h-4 w-4" />
 								Copy Skill ID
 							</DropdownMenuItem>
-							<DropdownMenuItem
+							{/* <DropdownMenuItem
 								onClick={() => {
 									router.push(`/power-skills/${skill.id}`);
 								}}
@@ -253,7 +315,7 @@ export default function PowerSkilll() {
 							>
 								<EditIcon className=" h-4 w-4" />
 								Edit Skill
-							</DropdownMenuItem>
+							</DropdownMenuItem> */}
 
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
@@ -328,6 +390,56 @@ export default function PowerSkilll() {
 								}`}
 							/>
 							{errors.skill && <FormErrorMessage error={errors.skill} errorMsg={errors.skill.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label htmlFor="isCorrect" className="text-sm font-medium text-gray-700">
+								Category<span className="text-red-500">*</span>
+							</label>
+							<Select key={selectKey} onValueChange={(value) => setValue('category', value, { shouldValidate: true })}>
+								<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
+									<SelectValue placeholder="Select a category" />
+								</SelectTrigger>
+								<SelectContent
+									position="popper"
+									className="max-h-60 overflow-y-auto z-0 bg-white shadow-md border border-gray-300 rounded-md"
+									avoidCollisions={false}
+								>
+									<SelectItem value="Cognitive Skills">Cognitive Skills</SelectItem>
+									<SelectItem value="Leadership Skills">Leadership Skills</SelectItem>
+									<SelectItem value="Self Efficacy Skills">Self Efficacy Skills</SelectItem>
+									<SelectItem value="Human Skills">Human Skills</SelectItem>
+								</SelectContent>
+							</Select>
+							{errors.category && <FormErrorMessage error={errors.category} errorMsg={errors.category.message} />}
+						</div>
+
+						<div className="mt-4">
+							<label htmlFor="skillImage" className="text-sm font-medium text-gray-700">
+								Upload Animated Image <span className="text-red-500">*</span>
+							</label>
+							<div className="relative">
+								<input type="file" id="skillImage" accept="video/*" onChange={handleFileChange} className="hidden" />
+								<label
+									htmlFor="skillImage"
+									className="block w-full border border-gray-300 rounded-lg shadow-sm bg-[#F8F8F8] cursor-pointer p-3 text-[13px] text-gray-500 min-h-[45px] text-center"
+								>
+									{fileName ? fileName : 'Choose an animated image'}
+								</label>
+							</div>
+
+							{fileName && (
+								<div className="mt-2 flex justify-end ml-auto">
+									<button
+										type="button"
+										onClick={removeFile}
+										className="bg-red-500 text-white px-3 py-1 rounded-md text-xs shadow-md hover:cursor-pointer"
+									>
+										Remove Video
+									</button>
+								</div>
+							)}
+							{errors.skillImage && <FormErrorMessage error={errors.skillImage} errorMsg={errors.skillImage.message} />}
 						</div>
 
 						<Button

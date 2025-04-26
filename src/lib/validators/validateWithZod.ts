@@ -498,6 +498,12 @@ const updatePassWordsSchema: z.ZodType<UpdatePasswordsProps> = z
 
 const addPowerSkillSchema: z.ZodType<AddPowerSkillProps> = z.object({
 	skill: z.string().min(3, { message: 'Skill is required' }).trim(),
+	category: z.string().min(3, { message: 'Skill category is required' }).trim(),
+	skillImage: z
+		.instanceof(File, { message: 'A valid video file is required' })
+		.refine((file) => file.size <= 10 * 1024 * 1024, {
+			message: 'File size must not exceed 10MB',
+		}),
 });
 
 const addRolePlaySchema: z.ZodType<AddRolePlayProps> = z.object({
@@ -599,13 +605,15 @@ const addQuizSchema: z.ZodType<AddQuizProps> = z.object({
 	optionB: z.string().min(1, { message: 'Option B is required' }).trim(),
 	optionC: z.string().trim().nullable(),
 	optionD: z.string().trim().nullable(),
-	isCorrect: z.string().refine((val) => ['optionA', 'optionB', 'optionC', 'optionD'].includes(val), {
-		message: 'Select a valid correct answer',
-	}),
-	// chapterId: z.string().uuid({ message: 'Invalid chapter ID' }),
-	// courseId: z.string().uuid({ message: 'Invalid course ID' }),
+	optionE: z.string().trim().nullable(),
+	isCorrect: z
+		.array(
+			z.enum(['optionA', 'optionB', 'optionC', 'optionD', 'optionE'], {
+				required_error: 'A correct option is required',
+			})
+		)
+		.min(1, { message: 'At least one correct option is required' }),
 });
-
 // export const zodValidator = (formType: FormType) => {
 // 	switch (formType) {
 // 		case 'signup':

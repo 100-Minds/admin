@@ -14,7 +14,7 @@ export const generateMetadata = async (props: { params: Promise<{ id: string }> 
 
 export default async function EditLesson(props: { params: Promise<{ id: string }> }) {
 	const params = await props.params;
-    
+
 	return (
 		<DashboardLayout heading="Edit Lesson">
 			<div className="mb-5">

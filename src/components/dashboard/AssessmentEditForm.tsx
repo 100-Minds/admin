@@ -1,19 +1,20 @@
 'use client';
 
 import { ApiResponse } from '@/interfaces';
-import { Assessment, AssessmentData } from '@/interfaces/ApiResponses';
+import { Assessment, AssessmentData, QuizOption } from '@/interfaces/ApiResponses';
 import { AddQuizType, callApi, zodValidator } from '@/lib';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useForm, Controller } from 'react-hook-form';
+//import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Select from 'react-select';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { FormErrorMessage } from '../common';
 import { Input } from '../ui/input';
 
-export default function AssessmentEditForm({ assessmentId }: { assessmentId: string }) {
+export default function AssessmentEditForm({ assessmentId, courseId }: { assessmentId: string; courseId: string }) {
 	const [error, setError] = useState<string | null>(null);
 	const [editedData, setEditedData] = useState<Partial<AddQuizType>>({});
 	const [isLoading, setIsLoading] = useState(false);
@@ -23,12 +24,14 @@ export default function AssessmentEditForm({ assessmentId }: { assessmentId: str
 	const [optionB, setOptionB] = useState<string>('');
 	const [optionC, setOptionC] = useState<string>('');
 	const [optionD, setOptionD] = useState<string>('');
-	const [isCorrect, setIsCorrect] = useState<string>('');
+	const [optionE, setOptionE] = useState<string>('');
+	const [isCorrect, setIsCorrect] = useState<QuizOption[]>([]);
 	const queryClient = useQueryClient();
 
 	const {
 		//register,
 		//handleSubmit,
+		control,
 		reset,
 		formState: { errors, isSubmitting },
 	} = useForm<AddQuizType>({
@@ -91,6 +94,10 @@ export default function AssessmentEditForm({ assessmentId }: { assessmentId: str
 				setOptionD(assessment[0].optionD);
 			}
 
+			if (assessment[0].optionE) {
+				setOptionE(assessment[0].optionE);
+			}
+
 			if (assessment[0].isCorrect) {
 				setIsCorrect(assessment[0].isCorrect);
 			}
@@ -102,11 +109,13 @@ export default function AssessmentEditForm({ assessmentId }: { assessmentId: str
 			setIsLoading(true);
 
 			const dataToSend = {
+				courseId,
 				question: updatedData.question,
 				optionA: updatedData.optionA,
 				optionB: updatedData.optionB,
 				optionC: updatedData.optionC,
 				optionD: updatedData.optionD,
+				optionE: updatedData.optionE,
 				isCorrect: updatedData.isCorrect || isCorrect,
 			};
 
@@ -159,6 +168,14 @@ export default function AssessmentEditForm({ assessmentId }: { assessmentId: str
 			<p>Error: {error}</p>
 		</div>;
 	}
+
+	const options = [
+		{ value: 'optionA', label: 'Option A' },
+		{ value: 'optionB', label: 'Option B' },
+		{ value: 'optionC', label: 'Option C' },
+		{ value: 'optionD', label: 'Option D' },
+		{ value: 'optionE', label: 'Option E' },
+	];
 
 	return (
 		<div className="flex flex-col w-full mt-10">
@@ -260,31 +277,87 @@ export default function AssessmentEditForm({ assessmentId }: { assessmentId: str
 					</div>
 
 					<div className="mt-4">
-						<label htmlFor="isCorrect" className="text-sm font-medium text-gray-700">
-							isCorrect
+						<label htmlFor="optionD" className="text-sm font-medium text-gray-700">
+							Option E
 						</label>
-						<Select
-							value={editedData.isCorrect || isCorrect}
-							onValueChange={(value) =>
-								setEditedData({ ...editedData, isCorrect: value as 'optionA' | 'optionB' | 'optionC' | 'optionD' })
-							}
+						<Input
+							value={editedData.optionE ?? optionE ?? ''}
+							onChange={(e) => setEditedData({ ...editedData, optionE: e.target.value })}
+							type="text"
+							id="name"
+							aria-label="option E"
+							placeholder="option E"
+							className={`min-h-[45px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-sm ${
+								errors.optionE && 'border-red-500 ring-2 ring-red-500'
+							}`}
+						/>
+						{errors.optionE && <FormErrorMessage error={errors.optionE} errorMsg={errors.optionE.message} />}
+					</div>
 
-							//disabled={scenarioLoading}
-						>
-							<SelectTrigger className="w-full min-h-[45px] border-gray-300 focus:ring-blue-500 hover:cursor-pointer">
-								<SelectValue placeholder="Course status" />
-							</SelectTrigger>
-							<SelectContent
-								position="popper"
-								className="max-h-60 overflow-y-auto z-0 bg-white shadow-md border border-gray-300 rounded-md"
-								avoidCollisions={false}
-							>
-								<SelectItem value="optionA">Option A</SelectItem>
-								<SelectItem value="optionB">Option B</SelectItem>
-								<SelectItem value="optionC">Option C</SelectItem>
-								<SelectItem value="optionD">Option D</SelectItem>
-							</SelectContent>
-						</Select>
+					<div className="mt-4">
+						<Controller
+							control={control}
+							name="isCorrect"
+							render={({ field }) => (
+								<div className="mt-4">
+									<label className="text-sm font-medium text-gray-700">
+										Correct Option<span className="text-red-500">*</span>
+									</label>
+									<Select
+										{...field}
+										isMulti
+										options={options}
+										className="mt-2"
+										classNamePrefix="react-select"
+										onChange={(selected) => {
+											const values = selected.map((s) => s.value);
+											field.onChange(values);
+										}}
+										value={options.filter((opt) => (field.value as string[])?.includes(opt.value))}
+										placeholder="Select correct option(s)"
+										styles={{
+											control: (base) => ({
+												...base,
+												minHeight: '45px',
+												backgroundColor: 'white', // Match your input background
+												borderColor: '#d1d5db', // Tailwind gray-300
+												boxShadow: 'none',
+												'&:hover': {
+													borderColor: '#3b82f6', // Tailwind blue-500 for hover
+												},
+												fontSize: '14px', // Text size
+											}),
+											placeholder: (base) => ({
+												...base,
+												fontSize: '14px', // Make placeholder smaller
+												color: '#9ca3af', // Tailwind gray-400
+											}),
+											multiValue: (base) => ({
+												...base,
+												backgroundColor: '#e0f2fe', // Light blue bg for selected items (optional)
+												borderRadius: '6px',
+											}),
+											multiValueLabel: (base) => ({
+												...base,
+												fontSize: '12px',
+												color: '#2563eb', // Tailwind blue-600 for text
+											}),
+											multiValueRemove: (base) => ({
+												...base,
+												color: '#2563eb',
+												':hover': {
+													backgroundColor: '#bfdbfe', // Lighter on hover
+													color: '#1d4ed8',
+												},
+											}),
+										}}
+									/>
+									{errors.isCorrect && (
+										<FormErrorMessage error={errors.isCorrect} errorMsg={errors.isCorrect.message} />
+									)}
+								</div>
+							)}
+						/>
 					</div>
 
 					<Button

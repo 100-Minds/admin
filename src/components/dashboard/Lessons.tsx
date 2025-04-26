@@ -8,7 +8,7 @@ import { useEffect, useState, useRef } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { FormErrorMessage, QuizIcon } from '../common';
+import { DeleteIcon, FormErrorMessage, QuizIcon } from '../common';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
 import { format } from 'date-fns';
@@ -233,25 +233,25 @@ export default function Lessonn({
 		}
 	};
 
-	// const onDeleteLesson = async (chapterId: string) => {
-	// 	try {
-	// 		const { data: responseData, error } = await callApi<ApiResponse<null>>(`/course/delete-lesson`, {
-	// 			chapterId,
-	// 		});
+	const onDeleteLesson = async (chapterId: string) => {
+		try {
+			const { data: responseData, error } = await callApi<ApiResponse<null>>(`/course/delete-lesson`, {
+				chapterId,
+			});
 
-	// 		if (error) throw new Error(error.message);
-	// 		if (responseData?.status === 'success') {
-	// 			toast.success('Lesson Deleted', { description: 'The Lesson has been successfully deleted.' });
-	// 			return true;
-	// 		}
-	// 		return false;
-	// 	} catch (err) {
-	// 		toast.error('Lesson Deletion Failed', {
-	// 			description: err instanceof Error ? err.message : 'An unexpected error occurred.',
-	// 		});
-	// 		return false;
-	// 	}
-	// };
+			if (error) throw new Error(error.message);
+			if (responseData?.status === 'success') {
+				toast.success('Lesson Deleted', { description: 'The Lesson has been successfully deleted.' });
+				return true;
+			}
+			return false;
+		} catch (err) {
+			toast.error('Lesson Deletion Failed', {
+				description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+			});
+			return false;
+		}
+	};
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -388,7 +388,7 @@ export default function Lessonn({
 			{
 				id: 'actions',
 				enableHiding: false,
-				cell: () => {
+				cell: ({ row }) => {
 					return (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild className="hover:cursor-pointer">
@@ -414,6 +414,7 @@ export default function Lessonn({
 								<DropdownMenuItem
 									onClick={() => {
 										router.push(`/courses/${courseId}/lesson`);
+										localStorage.setItem('lessonId', row.original.id);
 									}}
 									className="hover:cursor-pointer"
 								>
@@ -423,6 +424,7 @@ export default function Lessonn({
 								<DropdownMenuItem
 									onClick={() => {
 										router.push(`/courses/${courseId}/lesson?action=addQuiz`);
+										localStorage.setItem('lessonId', row.original.id);
 									}}
 									className="hover:cursor-pointer"
 								>
@@ -431,7 +433,7 @@ export default function Lessonn({
 								</DropdownMenuItem>
 
 								{/* <DropdownMenuSeparator /> */}
-								{/* <DropdownMenuItem
+								<DropdownMenuItem
 									className="hover:cursor-pointer text-red-500"
 									onClick={async () => {
 										const success = await onDeleteLesson(row.original.id);
@@ -440,7 +442,7 @@ export default function Lessonn({
 								>
 									<DeleteIcon className=" h-4 w-4" />
 									Delete
-								</DropdownMenuItem> */}
+								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					);
